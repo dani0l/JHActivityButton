@@ -8,50 +8,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "JHActivityButtonExample/JHActivityButton.m"
-         timestampString = "392472615.100466"
+         timestampString = "392512955.926069"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "148"
-         endingLineNumber = "148"
-         landmarkName = "-setHighlighted:"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "No"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "JHActivityButtonExample/JHActivityButton.m"
-         timestampString = "392472615.100466"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "350"
-         endingLineNumber = "350"
-         landmarkName = "-expandFromCenterAnimationWithNewRect:"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "No"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "JHActivityButtonExample/JHActivityButton.m"
-         timestampString = "392472615.100466"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "348"
-         endingLineNumber = "348"
-         landmarkName = "-expandFromCenterAnimationWithNewRect:"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "No"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "JHActivityButtonExample/JHActivityButton.m"
-         timestampString = "392472615.100466"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "529"
-         endingLineNumber = "529"
+         startingLineNumber = "452"
+         endingLineNumber = "452"
          landmarkName = "-circleShapeAnimationForPathUpdateToRadius:"
          landmarkType = "5">
       </FileBreakpoint>
@@ -60,11 +21,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "JHActivityButtonExample/JHActivityButton.m"
-         timestampString = "392472615.100466"
+         timestampString = "392512955.926069"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "245"
-         endingLineNumber = "245"
+         startingLineNumber = "249"
+         endingLineNumber = "249"
          landmarkName = "-animateBackgroundExpandLeft"
          landmarkType = "5">
       </FileBreakpoint>

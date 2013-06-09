@@ -19,7 +19,6 @@
 		3ED660BC17597FE70030E5A2 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3ED660BB17597FE70030E5A2 /* Default@2x.png */; };
 		3ED660BE17597FE70030E5A2 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 3ED660BD17597FE70030E5A2 /* Default-568h@2x.png */; };
 		3ED660C117597FE70030E5A2 /* JHViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3ED660C017597FE70030E5A2 /* JHViewController.m */; };
-		3ED660C417597FE70030E5A2 /* JHViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3ED660C217597FE70030E5A2 /* JHViewController.xib */; };
 		3ED660CC175980320030E5A2 /* JHActivityButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 3ED660CB175980320030E5A2 /* JHActivityButton.m */; };
 		3ED660CE175983B10030E5A2 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3ED660CD175983B10030E5A2 /* QuartzCore.framework */; };
 /* End PBXBuildFile section */
@@ -44,7 +43,6 @@
 		3ED660BD17597FE70030E5A2 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		3ED660BF17597FE70030E5A2 /* JHViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHViewController.h; sourceTree = "<group>"; };
 		3ED660C017597FE70030E5A2 /* JHViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHViewController.m; sourceTree = "<group>"; };
-		3ED660C317597FE70030E5A2 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/JHViewController.xib; sourceTree = "<group>"; };
 		3ED660CA175980320030E5A2 /* JHActivityButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JHActivityButton.h; sourceTree = "<group>"; };
 		3ED660CB175980320030E5A2 /* JHActivityButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JHActivityButton.m; sourceTree = "<group>"; };
 		3ED660CD175983B10030E5A2 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -115,7 +113,6 @@
 				3ED660C017597FE70030E5A2 /* JHViewController.m */,
 				3ED660CA175980320030E5A2 /* JHActivityButton.h */,
 				3ED660CB175980320030E5A2 /* JHActivityButton.m */,
-				3ED660C217597FE70030E5A2 /* JHViewController.xib */,
 				3ED660AE17597FE70030E5A2 /* Supporting Files */,
 			);
 			path = JHActivityButtonExample;
@@ -191,7 +188,6 @@
 				3ED660BA17597FE70030E5A2 /* Default.png in Resources */,
 				3ED660BC17597FE70030E5A2 /* Default@2x.png in Resources */,
 				3ED660BE17597FE70030E5A2 /* Default-568h@2x.png in Resources */,
-				3ED660C417597FE70030E5A2 /* JHViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,14 +216,6 @@
 				3ED660B117597FE70030E5A2 /* en */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		3ED660C217597FE70030E5A2 /* JHViewController.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3ED660C317597FE70030E5A2 /* en */,
-			);
-			name = JHViewController.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

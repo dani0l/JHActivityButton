@@ -39,7 +39,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         
         [self prepareAnimationDispatchTable];
         
-
+        [self addTarget:self action:@selector(handleTouchUp) forControlEvents:UIControlEventTouchUpInside];
+        
         /** Defaults */
         _rectangleCornerRadius  = 0.1;
         _easingFunction         = BackEaseOut;
@@ -58,6 +59,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     }
     
     return self;
+}
+
+-(void)handleTouchUp{
+    [self buttonStateChanged];
 }
 
 
@@ -99,27 +104,41 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     if (state == self.state) _buttonBackgroundShapeLayer.fillColor   = color.CGColor;
 }
 
--(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState{
+-(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState completion:(JHAnimationCompletionBlock)callback{
+    
     /** manually trigger normal/activity state */
     
     if (_isAnimating) return;
     
+    _isDisplayingActivityIndicator = shouldAnimateToActivityState;
+    
+    __block JHActivityButton* blockSelf = self;
     
     [CATransaction begin];
     [CATransaction setAnimationDuration:_animationTime];
     [CATransaction setCompletionBlock:^{
         _isAnimating = NO;
+        if (callback){
+            callback(blockSelf);
+        }
     }];
     
     _isAnimating = YES;
     
     /** query method dispatch table for correct method for current style and state */
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
     [self performSelector:[self animationSelectorForCurrentStyle:shouldAnimateToActivityState]];
-    #pragma clang diagnostic pop
+#pragma clang diagnostic pop
     
     [CATransaction commit];
+
+}
+
+-(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState{
+    
+    [self animateToActivityIndicatorState:shouldAnimateToActivityState completion:NULL];
+    
 }
 
 -(void)drawBackgroundRectangle{
@@ -145,19 +164,19 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 /** KVO on self.state not possible as it's "synthesized from other flags." using existing UIButton Methods instead */
 
--(void)setHighlighted:(BOOL)highlighted{
-    [super setHighlighted:highlighted];
-    
-    [self buttonStateChanged];
-}
-
--(void)setSelected:(BOOL)selected{
-    [super setSelected:selected];
-    
-   
-    [self buttonStateChanged];
-}
-
+//-(void)setHighlighted:(BOOL)highlighted{
+//    [super setHighlighted:highlighted];
+//    
+//    [self buttonStateChanged];
+//}
+//
+//-(void)setSelected:(BOOL)selected{
+//    [super setSelected:selected];
+//    
+//   
+//    [self buttonStateChanged];
+//}
+//
 -(void)setEnabled:(BOOL)enabled{
     [super setEnabled:enabled];
     
@@ -199,23 +218,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 #pragma mark Style Specific Animation Methods
 
 
--(void)animateView:(UIView*)view fromPoint:(CGPoint)fromPoint toPoint:(CGPoint)toPoint{
-    
-    
-    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"position"
-                                                                       function:_easingFunction
-                                                                      fromPoint:fromPoint
-                                                                        toPoint:toPoint];
-    
-    indicatorAnimation.duration = _animationTime;
-    
-    [view.layer addAnimation:indicatorAnimation forKey:@"position"];
-    view.layer.position = toPoint;
-}
-
-
-
-#pragma mark Expand wide center
+#pragma mark - 
+#pragma mark - expand from center left/right
 
 -(void)animateBackgroundExpandLeft{
     
@@ -233,7 +237,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     CGPoint xOffsetPoint        = existingLayerPoint;
     xOffsetPoint.x              += offsetDelta;
     
-    [self animateView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
+    [self positionView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
     
     /** animate activity indicator */
     
@@ -245,27 +249,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     CGFloat zeroPosition = -xOffsetPoint.x + _indicator.bounds.size.width/2;
     zeroPosition += kExpandWidePadding;
     
-    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"
-                                                                       function:_easingFunction
-                                                                      fromValue:0.0 toValue:zeroPosition];
+    [self translatePositionXInView:_indicator fromValue:0.0 toValue:zeroPosition];
     
-    indicatorAnimation.fillMode = kCAFillModeForwards;
-    indicatorAnimation.removedOnCompletion = NO;
-    indicatorAnimation.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorAnimation forKey:@"transform.scale"];
-    
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
 
     /** animate background */
@@ -288,7 +275,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     CGPoint xOffsetPoint        = existingLayerPoint;
     xOffsetPoint.x              -= offsetDelta;
     
-    [self animateView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
+    [self positionView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
     
     /** animate activity indicator */
         
@@ -297,27 +284,11 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self addSubview:_indicator];
     [_indicator startAnimating];
     
-    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"
-                                                                       function:_easingFunction
-                                                                      fromValue:0.0 toValue:(newBounds.size.width/2 - _indicator.bounds.size.width/2)-kExpandWidePadding];
     
-    indicatorAnimation.fillMode = kCAFillModeForwards;
-    indicatorAnimation.removedOnCompletion = NO;
-    indicatorAnimation.duration = _animationTime;
+    [self translatePositionXInView:_indicator fromValue:0.0 toValue:(newBounds.size.width/2 - _indicator.bounds.size.width/2)-kExpandWidePadding];
     
-    [_indicator.layer addAnimation:indicatorAnimation forKey:@"transform.scale"];
-    
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
     /** animate background */
     [self expandBackgroundWidthFromCenter];
@@ -332,6 +303,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     CAKeyframeAnimation* expandFromCenterAnimation = [self expandFromCenterAnimationWithNewRect:newBounds];
     [_buttonBackgroundShapeLayer addAnimation:expandFromCenterAnimation forKey:@"path"];
     [_buttonBackgroundShapeLayer setPath:[UIBezierPath bezierPathWithRoundedRect:newBounds cornerRadius:_rectangleCornerRadius].CGPath];
+    
 }
 
 -(CAKeyframeAnimation*)expandFromCenterAnimationWithNewRect:(CGRect)newRect{
@@ -359,58 +331,43 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     return animation;
 }
 
-#pragma mark Expand Down
+#pragma mark -
+#pragma mark - Expand Down top/bottom
 
 -(void)expandBackgroundHeightTop{
-    
-    [self expandBackgroundHeightDownward];
-    
-    /** animate activity indicator */
-    
-    [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
-    
-    [self addSubview:_indicator];
-    [_indicator startAnimating];
-    
-    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
-                                                                       function:_easingFunction
-                                                                      fromValue:0 toValue:[self indicatorVerticalCenter]+(_indicator.frame.size.height/2)];
-    
-    indicatorAnimation.fillMode = kCAFillModeForwards;
-    indicatorAnimation.removedOnCompletion = NO;
-    indicatorAnimation.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorAnimation forKey:@"transform.translation.y"];
-    
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-}
-
--(void)expandBackgroundHeightBottom{
-    /** animate label */
     
     UIImageView *rasterLabel = [self rasterTitleLabel];
     [self addSubview:rasterLabel];
     self.titleLabel.alpha = 0;
     
+    /* calculate background height and activity indicator position */
+    
     CGRect newBounds       = self.bounds;
     newBounds.size.height  *= 2;
-    
-    CGFloat offsetDelta = (newBounds.size.height - self.bounds.size.height);
+
     CGPoint existingLayerPoint  = rasterLabel.layer.position;
     CGPoint xOffsetPoint        = existingLayerPoint;
-    xOffsetPoint.y              += offsetDelta;
+    xOffsetPoint.y              += self.bounds.size.height;
     
-    [self animateView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
+    [self positionView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
+    
+    /** center activity indicator */
+    [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
+    
+    [self addSubview:_indicator];
+    [_indicator startAnimating];
+    
+    /* move activity indicator from offscreen top to center of original bounds */
+    [self translatePositionYInView:_indicator fromValue:-_indicator.frame.size.height toValue:0];
+
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
+    
+    [self expandBackgroundHeightDownward];
+
+}
+
+-(void)expandBackgroundHeightBottom{
     
     /** animate activity indicator */
     
@@ -419,68 +376,31 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self addSubview:_indicator];
     [_indicator startAnimating];
     
-    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
-                                                                       function:_easingFunction
-                                                                      fromValue:-_indicator.frame.size.height toValue:0];
+    /* move activity indicator from offscreen top to center of original bounds */
+    [self translatePositionYInView:_indicator fromValue:0 toValue:[self indicatorVerticalCenter]+(_indicator.frame.size.height/2)];
     
-    indicatorAnimation.fillMode = kCAFillModeForwards;
-    indicatorAnimation.removedOnCompletion = NO;
-    indicatorAnimation.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorAnimation forKey:@"transform.translation.y"];
-    
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-
-
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
     [self expandBackgroundHeightDownward];
+
 }
 
 -(void)expandBackgroundHeightDownward{
     
-    CGRect newBounds       = self.bounds;
-    newBounds.size.height  *= 2;
+    CAAnimation *backgroundHeight = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale.y"
+                                                                     function:_easingFunction
+                                                                    fromValue:1.0 toValue:2.0];
     
-    CAKeyframeAnimation* expandFromTopAnimation = [self expandDownToRect:newBounds];
-    [_buttonBackgroundShapeLayer addAnimation:expandFromTopAnimation forKey:@"path"];
-    [_buttonBackgroundShapeLayer setPath:[UIBezierPath bezierPathWithRoundedRect:newBounds cornerRadius:_rectangleCornerRadius].CGPath];
+    backgroundHeight.fillMode = kCAFillModeForwards;
+    backgroundHeight.removedOnCompletion = NO;
+    backgroundHeight.duration = _animationTime;
     
+    [_buttonBackgroundShapeLayer addAnimation:backgroundHeight forKey:@"transform.scale.y"];
 }
 
--(CAKeyframeAnimation*)expandDownToRect:(CGRect)newRect{
-    
-    CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"path"];
-    
-    NSMutableArray *values = [NSMutableArray arrayWithCapacity:kDefaultFrameCount];
-	
-	CGFloat t = 0.0;
-	CGFloat dt = 1.0 / (kDefaultFrameCount - 1);
-	for(size_t frame = 0; frame < kDefaultFrameCount; ++frame, t += dt){
-		
-        CGFloat value = self.bounds.size.height + _easingFunction(t) * (newRect.size.height - self.bounds.size.height);
-    
-        CGRect adjustedFrame    = CGRectMake(self.bounds.origin.x, self.bounds.origin.y, self.bounds.size.width, value);
-        CGPathRef adjustedPath  = [UIBezierPath bezierPathWithRoundedRect:adjustedFrame cornerRadius:_rectangleCornerRadius].CGPath;
-        
-		[values addObject:(__bridge id)(adjustedPath)];
-	}
-	
-	[animation setValues:values];
-    
-    return animation;
-}
-
-#pragma mark Contract to circle
+#pragma mark - 
+#pragma mark - Contract to circle
 
 -(void)animateBackgroundToCircle{
     
@@ -514,7 +434,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 	
 	CGFloat t = 0.0;
 	CGFloat dt = 1.0 / (kDefaultFrameCount - 1);
-	for(size_t frame = 0; frame < kDefaultFrameCount; ++frame, t += dt){
+	
+    /** manually calculating the eased height and width and draw a circle path based on the MIN of the two as a radius */
+    
+    for(size_t frame = 0; frame < kDefaultFrameCount; ++frame, t += dt){
         
         CGFloat startRadius = _rectangleCornerRadius;
         
@@ -538,8 +461,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     return animation;
 }
-
-#pragma mark zoom
+#pragma mark - 
+#pragma mark - zoom in/out
 
 -(void)zoomOutTitleAndIndicator{
     
@@ -552,51 +475,17 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
     
+    /** scale the label from regular size to small */
+    [self scaleView:rasterLabel fromScale:1.0 toScale:0.8];
     
-    CAAnimation *titleSizeAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"
-                                                                       function:_easingFunction
-                                                                      fromValue:1.0 toValue:0.8];
+    /** scale the activity indicator from twice the regular size to the regular size */
+    [self scaleView:_indicator fromScale:2.0 toScale:1.0];
     
-    titleSizeAnimation.fillMode = kCAFillModeForwards;
-    titleSizeAnimation.removedOnCompletion = NO;
-    titleSizeAnimation.duration = _animationTime;
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
-    [rasterLabel.layer addAnimation:titleSizeAnimation forKey:@"transform.scale"];
-    
-    
-    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"
-                                                                       function:_easingFunction
-                                                                      fromValue:2.0 toValue:1.0];
-    
-    indicatorAnimation.fillMode = kCAFillModeForwards;
-    indicatorAnimation.removedOnCompletion = NO;
-    indicatorAnimation.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorAnimation forKey:@"transform.scale"];
-    
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                       function:_easingFunction
-                                                                      fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-    
-    
-    CAAnimation *titleOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:1.0 toValue:0.0];
-    
-    titleOpacity.fillMode = kCAFillModeForwards;
-    titleOpacity.removedOnCompletion = NO;
-    titleOpacity.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleOpacity forKey:@"opacity"];
-    
+    /** fade out title raster copy */
+    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
     
 }
 
@@ -607,55 +496,21 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self addSubview:_indicator];
     [_indicator startAnimating];
     
-    
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
     
+    /** scale the label from regular size to extra large */
+    [self scaleView:rasterLabel fromScale:1.0 toScale:2.0];
     
-    CAAnimation *titleSizeAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"
-                                                                       function:_easingFunction
-                                                                      fromValue:1.0 toValue:2.0];
+    /** scale the activity indicator from small the regular size */
+    [self scaleView:_indicator fromScale:0.3 toScale:1.0];
+
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
-    titleSizeAnimation.fillMode = kCAFillModeForwards;
-    titleSizeAnimation.removedOnCompletion = NO;
-    titleSizeAnimation.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleSizeAnimation forKey:@"transform.scale"];
-    
-    
-    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"
-                                                                       function:_easingFunction
-                                                                      fromValue:0.3 toValue:1.0];
-    
-    indicatorAnimation.fillMode = kCAFillModeForwards;
-    indicatorAnimation.removedOnCompletion = NO;
-    indicatorAnimation.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorAnimation forKey:@"transform.scale"];
-    
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-    
-    
-    CAAnimation *titleOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                 function:_easingFunction
-                                                                fromValue:1.0 toValue:0.0];
-    
-    titleOpacity.fillMode = kCAFillModeForwards;
-    titleOpacity.removedOnCompletion = NO;
-    titleOpacity.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleOpacity forKey:@"opacity"];
+    /** fade out title raster copy */
+    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
     
 }
 
@@ -777,6 +632,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 #pragma mark -
 #pragma mark - Animation Utility Methods 
 
+/** further abstraction here is very possible as much code duplication still exists
+ these utility methods are constructed and named as such to aid readibility and
+ ease in adding additiona functionality to a perticular animation */
+
 -(void)translatePositionYInView:(UIView*)viewToTranslate fromValue:(CGFloat)startY toValue:(CGFloat)endY{
     
     CAAnimation *translateXPosition = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
@@ -803,17 +662,45 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [viewToTranslate.layer addAnimation:translateXPosition forKey:@"transform.translation.x"];
 }
 
--(void)modifyOpacityOnView:(UIView*)viewToFade fromOpacity:(CGFloat)fromAlpha toOpacity:(CGFloat)toAlpha{
+-(void)modifyOpacityOnView:(UIView*)viewToFade fromOpacity:(CGFloat)startAlpha toOpacity:(CGFloat)endAlpha{
     
     CAAnimation *opacityAnimation = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
                                                                  function:_easingFunction
-                                                                fromValue:fromAlpha toValue:toAlpha];
+                                                                fromValue:startAlpha toValue:endAlpha];
     
     opacityAnimation.fillMode = kCAFillModeForwards;
     opacityAnimation.removedOnCompletion = NO;
     opacityAnimation.duration = _animationTime;
     
     [viewToFade.layer addAnimation:opacityAnimation forKey:@"opacity"];
+}
+
+-(void)scaleView:(UIView*)viewToScale fromScale:(CGFloat)startScale toScale:(CGFloat)endScale{
+ 
+    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"
+                                                                       function:_easingFunction
+                                                                      fromValue:startScale toValue:endScale];
+    
+    indicatorAnimation.fillMode = kCAFillModeForwards;
+    indicatorAnimation.removedOnCompletion = NO;
+    indicatorAnimation.duration = _animationTime;
+    
+    [viewToScale.layer addAnimation:indicatorAnimation forKey:@"transform.scale"];
+    
+}
+
+-(void)positionView:(UIView*)view fromPoint:(CGPoint)fromPoint toPoint:(CGPoint)toPoint{
+    
+    
+    CAAnimation *indicatorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"position"
+                                                                       function:_easingFunction
+                                                                      fromPoint:fromPoint
+                                                                        toPoint:toPoint];
+    
+    indicatorAnimation.duration = _animationTime;
+    
+    [view.layer addAnimation:indicatorAnimation forKey:@"position"];
+    view.layer.position = toPoint;
 }
 
 #pragma mark -
@@ -825,17 +712,17 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     NSMutableDictionary* mutableAnimationMethodTable = [[NSMutableDictionary alloc]init];
     
-    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandLeft)]       = @"animateBackgroundExpandLeft";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandRight)]      = @"animateBackgroundExpandRight";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandUp)]         = @"expandBackgroundHeightBottom";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandDown)]       = @"expandBackgroundHeightTop";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleZoomIn)]           = @"zoomInTitleAndIndicator";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleZoomOut)]          = @"zoomOutTitleAndIndicator";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideLeft)]        = @"slideLeft";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideRight)]       = @"slideRight";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideUp)]          = @"slideUp";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideDown)]        = @"slideDown";
-    mutableAnimationMethodTable[@(JHActivityButtonStyleContractCircle)]   = @"animateBackgroundToCircle";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandLeft)]             = @"animateBackgroundExpandLeft";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandRight)]            = @"animateBackgroundExpandRight";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandDownTop)]          = @"expandBackgroundHeightTop";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleExpandDownBottom)]       = @"expandBackgroundHeightBottom";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleZoomIn)]                 = @"zoomInTitleAndIndicator";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleZoomOut)]                = @"zoomOutTitleAndIndicator";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideLeft)]              = @"slideLeft";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideRight)]             = @"slideRight";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideUp)]                = @"slideUp";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleSlideDown)]              = @"slideDown";
+    mutableAnimationMethodTable[@(JHActivityButtonStyleContractCircle)]         = @"animateBackgroundToCircle";
     
     _animationMethodTable = [NSDictionary dictionaryWithDictionary:mutableAnimationMethodTable];
 }
@@ -852,12 +739,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 #pragma mark - Utility methods
 
 -(CGFloat)indicatorVerticalCenter{
-    /** return using CALayer rules not UIView rules */
+    /** eturn using CALayer center position */
     return (self.bounds.size.height/2);
 }
 
 -(CGFloat)indicatorHorizontalCenter{
-    /** return using CALayer rules not UIView rules */
+    /** return using CALayer position */
     return (self.bounds.size.width/2);
 }
 
@@ -865,7 +752,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     UIImageView *titleRasterCopy = [[UIImageView alloc]initWithImage:[self.titleLabel getRasterCopy]];
     [titleRasterCopy setFrame:self.titleLabel.frame];
-    //    titleRasterCopy.backgroundColor = [UIColor orangeColor];
     
     return titleRasterCopy;
 }

@@ -11,12 +11,14 @@
 
 @interface JHActivityButton : UIButton
 
+typedef void(^JHAnimationCompletionBlock)(JHActivityButton* button);
+
 typedef NS_ENUM(NSInteger, JHActivityButtonStyle) {
    
     JHActivityButtonStyleExpandLeft,
     JHActivityButtonStyleExpandRight,
-    JHActivityButtonStyleExpandUp,
-    JHActivityButtonStyleExpandDown,
+    JHActivityButtonStyleExpandDownTop,
+    JHActivityButtonStyleExpandDownBottom,
     JHActivityButtonStyleZoomIn,
     JHActivityButtonStyleZoomOut,
     JHActivityButtonStyleSlideLeft,
@@ -37,7 +39,9 @@ typedef NS_ENUM(NSInteger, JHActivityButtonStyle) {
 -(instancetype)initFrame:(CGRect)frame style:(JHActivityButtonStyle)style;
 
 -(void)setBackgroundColor:(UIColor *)color forState:(UIControlState)state;
+
 -(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState;
+-(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState completion:(JHAnimationCompletionBlock)callback;
 
 @end
 
