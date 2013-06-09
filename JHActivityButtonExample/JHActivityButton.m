@@ -18,11 +18,11 @@
     UIColor*        _backgroundHighlightedColor;
     UIColor*        _backgroundDisabledColor;
     UIColor*        _backgroundSelectedColor;
-    
-    BOOL            _isAnimating;
-    
-    NSDictionary*               _animationMethodTable;
+    NSDictionary*   _animationMethodTable;
 }
+
+@property(nonatomic,assign) BOOL    isAnimating;
+
 @end
 
 static CGFloat          kExpandFromCenterFactor = 0.27;
@@ -112,12 +112,18 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     _isDisplayingActivityIndicator = shouldAnimateToActivityState;
     
+//    if (!shouldAnimateToActivityState){
+//        [self drawBackgroundRectangle];
+//        return;
+//    }
+    
     __block JHActivityButton* blockSelf = self;
     
     [CATransaction begin];
     [CATransaction setAnimationDuration:_animationTime];
     [CATransaction setCompletionBlock:^{
-        _isAnimating = NO;
+        NSLog(@"transaction complete");
+        blockSelf.isAnimating = NO;
         if (callback){
             callback(blockSelf);
         }
@@ -138,7 +144,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 -(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState{
     
     [self animateToActivityIndicatorState:shouldAnimateToActivityState completion:NULL];
-    
 }
 
 -(void)drawBackgroundRectangle{
@@ -164,19 +169,18 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 /** KVO on self.state not possible as it's "synthesized from other flags." using existing UIButton Methods instead */
 
-//-(void)setHighlighted:(BOOL)highlighted{
-//    [super setHighlighted:highlighted];
-//    
-//    [self buttonStateChanged];
-//}
-//
-//-(void)setSelected:(BOOL)selected{
-//    [super setSelected:selected];
-//    
-//   
-//    [self buttonStateChanged];
-//}
-//
+-(void)setHighlighted:(BOOL)highlighted{
+    [super setHighlighted:highlighted];
+
+}
+
+-(void)setSelected:(BOOL)selected{
+    [super setSelected:selected];
+    
+    [self buttonStateChanged];
+}
+
+
 -(void)setEnabled:(BOOL)enabled{
     [super setEnabled:enabled];
     
@@ -394,7 +398,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     backgroundHeight.fillMode = kCAFillModeForwards;
     backgroundHeight.removedOnCompletion = NO;
-    backgroundHeight.duration = _animationTime;
     
     [_buttonBackgroundShapeLayer addAnimation:backgroundHeight forKey:@"transform.scale.y"];
 }
@@ -411,10 +414,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     CGPathRef rectanglePath             = [UIBezierPath bezierPathWithRoundedRect:circlePathRect cornerRadius:endRadius].CGPath;
     CAKeyframeAnimation* shapeAnimation = [self circleShapeAnimationForPathUpdateToRadius:endRadius];
     
-    _indicator.alpha = 0;
-    [UIView animateWithDuration:_animationTime animations:^{
-        _indicator.alpha = 1;
-    }];
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
     [self addSubview:_indicator];
     [_indicator startAnimating];
@@ -630,6 +630,14 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 }
 
 #pragma mark -
+#pragma mark - Reset to default
+
+-(void)animateToDefaultState{
+    
+    
+}
+
+#pragma mark -
 #pragma mark - Animation Utility Methods 
 
 /** further abstraction here is very possible as much code duplication still exists
@@ -644,7 +652,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     translateXPosition.fillMode = kCAFillModeForwards;
     translateXPosition.removedOnCompletion = NO;
-    translateXPosition.duration = _animationTime;
     
     [viewToTranslate.layer addAnimation:translateXPosition forKey:@"transform.translation.y"];
 }
@@ -657,7 +664,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     translateXPosition.fillMode = kCAFillModeForwards;
     translateXPosition.removedOnCompletion = NO;
-    translateXPosition.duration = _animationTime;
     
     [viewToTranslate.layer addAnimation:translateXPosition forKey:@"transform.translation.x"];
 }
@@ -670,8 +676,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     opacityAnimation.fillMode = kCAFillModeForwards;
     opacityAnimation.removedOnCompletion = NO;
-    opacityAnimation.duration = _animationTime;
-    
+
     [viewToFade.layer addAnimation:opacityAnimation forKey:@"opacity"];
 }
 
@@ -683,7 +688,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     indicatorAnimation.fillMode = kCAFillModeForwards;
     indicatorAnimation.removedOnCompletion = NO;
-    indicatorAnimation.duration = _animationTime;
     
     [viewToScale.layer addAnimation:indicatorAnimation forKey:@"transform.scale"];
     
@@ -697,7 +701,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
                                                                       fromPoint:fromPoint
                                                                         toPoint:toPoint];
     
-    indicatorAnimation.duration = _animationTime;
     
     [view.layer addAnimation:indicatorAnimation forKey:@"position"];
     view.layer.position = toPoint;
