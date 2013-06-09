@@ -38,11 +38,13 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     if (self = [super initWithFrame:frame]){
         
         [self prepareAnimationDispatchTable];
+        
 
         /** Defaults */
         _rectangleCornerRadius  = 0.1;
         _easingFunction         = BackEaseOut;
         _animationTime          = 0.3;
+        _backgroundNormalColor  = [UIColor blackColor];
         
         _style                  = style;
         _indicator              = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
@@ -93,12 +95,15 @@ static CGFloat          kExpandWidePadding      = 10.0f;
             //nothing yet
             break;
     }
+    
+    if (state == self.state) _buttonBackgroundShapeLayer.fillColor   = color.CGColor;
 }
 
 -(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState{
     /** manually trigger normal/activity state */
     
     if (_isAnimating) return;
+    
     
     [CATransaction begin];
     [CATransaction setAnimationDuration:_animationTime];
@@ -121,7 +126,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     _buttonBackgroundShapeLayer             = [CAShapeLayer layer];
     _buttonBackgroundShapeLayer.path        = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:_rectangleCornerRadius].CGPath;
-    _buttonBackgroundShapeLayer.fillColor   = [UIColor redColor].CGColor;
+    _buttonBackgroundShapeLayer.fillColor   = _backgroundNormalColor.CGColor;
     _buttonBackgroundShapeLayer.anchorPoint = CGPointMake(0.5f, 0.5f);
     
     [self.layer addSublayer:_buttonBackgroundShapeLayer];
@@ -654,6 +659,9 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
 }
 
+#pragma mark - 
+#pragma mark - slide left/right
+
 -(void)slideLeft{
     
     self.clipsToBounds = YES;
@@ -668,50 +676,17 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
     
+    /** move label from center to offscreen left */
+    [self translatePositionXInView:rasterLabel fromValue:0 toValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width)];
     
-    CAAnimation *titleSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"
-                                                                 function:_easingFunction
-                                                                fromValue:0.0 toValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width)];
+    /** move indicator from offscreen right to center */
+    [self translatePositionXInView:_indicator fromValue:self.bounds.size.width toValue:0];
     
-    titleSlide.fillMode = kCAFillModeForwards;
-    titleSlide.removedOnCompletion = NO;
-    titleSlide.duration = _animationTime;
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
-    [rasterLabel.layer addAnimation:titleSlide forKey:@"transform.translation.x"];
-    
-    CAAnimation *indicatorSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"
-                                                               function:_easingFunction
-                                                              fromValue:self.bounds.size.width toValue:0];
-    
-    indicatorSlide.fillMode = kCAFillModeForwards;
-    indicatorSlide.removedOnCompletion = NO;
-    indicatorSlide.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorSlide forKey:@"transform.translation.x"];
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-    
-    
-    CAAnimation *titleOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                 function:_easingFunction
-                                                                fromValue:1.0 toValue:0.0];
-    
-    titleOpacity.fillMode = kCAFillModeForwards;
-    titleOpacity.removedOnCompletion = NO;
-    titleOpacity.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleOpacity forKey:@"opacity"];
-//
-    
+    /** fade out title raster copy */
+    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
 }
 
 
@@ -724,55 +699,25 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self addSubview:_indicator];
     [_indicator startAnimating];
     
-    
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
     
+    /** animate label from center to offscreen right */
+    [self translatePositionXInView:rasterLabel fromValue:0 toValue:self.bounds.size.width];
     
-    CAAnimation *titleSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"
-                                                               function:_easingFunction
-                                                              fromValue:self.bounds.size.width toValue:0];
+    /** move indicator from offscreen right to center */
+    [self translatePositionXInView:_indicator fromValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width) toValue:0];
+        
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
-    titleSlide.fillMode = kCAFillModeForwards;
-    titleSlide.removedOnCompletion = NO;
-    titleSlide.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleSlide forKey:@"transform.translation.x"];
-    
-    CAAnimation *indicatorSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"
-                                                                   function:_easingFunction
-                                                                  fromValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width) toValue:0];
-    
-    indicatorSlide.fillMode = kCAFillModeForwards;
-    indicatorSlide.removedOnCompletion = NO;
-    indicatorSlide.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorSlide forKey:@"transform.translation.x"];
-    
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-    
-    
-    CAAnimation *titleOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                 function:_easingFunction
-                                                                fromValue:1.0 toValue:0.0];
-    
-    titleOpacity.fillMode = kCAFillModeForwards;
-    titleOpacity.removedOnCompletion = NO;
-    titleOpacity.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleOpacity forKey:@"opacity"];
-    
+    /** fade out title raster copy */
+    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
 }
+
+#pragma mark - 
+#pragma mark - slide up/down
 
 -(void)slideUp{
     
@@ -788,49 +733,17 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
     
+    /** move title updward offscreen */
+    [self translatePositionYInView:rasterLabel fromValue:0 toValue:-(rasterLabel.frame.origin.y + rasterLabel.frame.size.height)];
     
-    CAAnimation *titleSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
-                                                               function:_easingFunction
-                                                              fromValue:0 toValue:-(rasterLabel.frame.origin.y + rasterLabel.frame.size.height)];
-    
-    titleSlide.fillMode = kCAFillModeForwards;
-    titleSlide.removedOnCompletion = NO;
-    titleSlide.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleSlide forKey:@"transform.translation.y"];
-    
-    CAAnimation *indicatorSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
-                                                                   function:_easingFunction
-                                                                  fromValue:self.bounds.size.height toValue:0];
-    
-    indicatorSlide.fillMode = kCAFillModeForwards;
-    indicatorSlide.removedOnCompletion = NO;
-    indicatorSlide.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorSlide forKey:@"transform.translation.x"];
+    /** move indicator updward to center */
+    [self translatePositionYInView:_indicator fromValue:self.bounds.size.height toValue:0];
 
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-    
-    
-    CAAnimation *titleOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                 function:_easingFunction
-                                                                fromValue:1.0 toValue:0.0];
-    
-    titleOpacity.fillMode = kCAFillModeForwards;
-    titleOpacity.removedOnCompletion = NO;
-    titleOpacity.duration = _animationTime;
-    
-    [rasterLabel.layer addAnimation:titleOpacity forKey:@"opacity"];
-    
+    /** fade out title raster copy */
+    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
 }
 
 
@@ -842,54 +755,65 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     [self addSubview:_indicator];
     [_indicator startAnimating];
-    
-    
+
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
     
+    /** move title down offscreen */
+    [self translatePositionYInView:rasterLabel fromValue:0 toValue:self.bounds.size.height];
+
+    /** move indicator downward to center*/
+    [self translatePositionYInView:_indicator fromValue:-(_indicator.frame.origin.y + _indicator.frame.size.height) toValue:0];
     
-    CAAnimation *titleSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
-                                                               function:_easingFunction
-                                                              fromValue:0 toValue:self.bounds.size.height];
+    /** fade in activity indicator */
+    [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0]; 
     
-    titleSlide.fillMode = kCAFillModeForwards;
-    titleSlide.removedOnCompletion = NO;
-    titleSlide.duration = _animationTime;
+    /** fade out title raster copy */
+    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0]; 
     
-    [rasterLabel.layer addAnimation:titleSlide forKey:@"transform.translation.y"];
+}
+
+#pragma mark -
+#pragma mark - Animation Utility Methods 
+
+-(void)translatePositionYInView:(UIView*)viewToTranslate fromValue:(CGFloat)startY toValue:(CGFloat)endY{
     
-    CAAnimation *indicatorSlide = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
+    CAAnimation *translateXPosition = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.y"
+                                                                       function:_easingFunction
+                                                                      fromValue:startY toValue:endY];
+    
+    translateXPosition.fillMode = kCAFillModeForwards;
+    translateXPosition.removedOnCompletion = NO;
+    translateXPosition.duration = _animationTime;
+    
+    [viewToTranslate.layer addAnimation:translateXPosition forKey:@"transform.translation.y"];
+}
+
+-(void)translatePositionXInView:(UIView*)viewToTranslate fromValue:(CGFloat)startX toValue:(CGFloat)endX{
+    
+    CAAnimation *translateXPosition = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"
                                                                    function:_easingFunction
-                                                                  fromValue:-(_indicator.frame.origin.y + _indicator.frame.size.height) toValue:0];
+                                                                  fromValue:startX toValue:endX];
     
-    indicatorSlide.fillMode = kCAFillModeForwards;
-    indicatorSlide.removedOnCompletion = NO;
-    indicatorSlide.duration = _animationTime;
+    translateXPosition.fillMode = kCAFillModeForwards;
+    translateXPosition.removedOnCompletion = NO;
+    translateXPosition.duration = _animationTime;
     
-    [_indicator.layer addAnimation:indicatorSlide forKey:@"transform.translation.x"];
+    [viewToTranslate.layer addAnimation:translateXPosition forKey:@"transform.translation.x"];
+}
+
+-(void)modifyOpacityOnView:(UIView*)viewToFade fromOpacity:(CGFloat)fromAlpha toOpacity:(CGFloat)toAlpha{
     
-    
-    CAAnimation *indicatorOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
-                                                                     function:_easingFunction
-                                                                    fromValue:0.0 toValue:1.0];
-    
-    indicatorOpacity.fillMode = kCAFillModeForwards;
-    indicatorOpacity.removedOnCompletion = NO;
-    indicatorOpacity.duration = _animationTime;
-    
-    [_indicator.layer addAnimation:indicatorOpacity forKey:@"opacity"];
-    
-    
-    CAAnimation *titleOpacity = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
+    CAAnimation *opacityAnimation = [CAKeyframeAnimation animationWithKeyPath:@"opacity"
                                                                  function:_easingFunction
-                                                                fromValue:1.0 toValue:0.0];
+                                                                fromValue:fromAlpha toValue:toAlpha];
     
-    titleOpacity.fillMode = kCAFillModeForwards;
-    titleOpacity.removedOnCompletion = NO;
-    titleOpacity.duration = _animationTime;
+    opacityAnimation.fillMode = kCAFillModeForwards;
+    opacityAnimation.removedOnCompletion = NO;
+    opacityAnimation.duration = _animationTime;
     
-    [rasterLabel.layer addAnimation:titleOpacity forKey:@"opacity"];
+    [viewToFade.layer addAnimation:opacityAnimation forKey:@"opacity"];
 }
 
 #pragma mark -

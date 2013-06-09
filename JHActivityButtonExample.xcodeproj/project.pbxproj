@@ -70,8 +70,8 @@
 			children = (
 				3EA4F3CF175A5438000C0136 /* CAKeyframeAnimation+AHEasing.h */,
 				3EA4F3D0175A5438000C0136 /* CAKeyframeAnimation+AHEasing.m */,
-				3EA4F3D1175A5438000C0136 /* easing.c */,
 				3EA4F3D2175A5438000C0136 /* easing.h */,
+				3EA4F3D1175A5438000C0136 /* easing.c */,
 			);
 			name = AHEasing;
 			path = JHActivityButtonExample/AHEasing;

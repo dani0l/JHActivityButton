@@ -8,9 +8,6 @@
 
 #import <UIKit/UIKit.h>
 #import "easing.h"
-/* TODO: UIAppearance, */
-/** UIAppearance: color for activity indicator, bg color for states, */
-
 
 @interface JHActivityButton : UIButton
 
@@ -35,7 +32,7 @@ typedef NS_ENUM(NSInteger, JHActivityButtonStyle) {
 @property(nonatomic,assign)             BOOL                        shouldSuppressStateChangeOnTap;
 @property(nonatomic,assign,readonly)    JHActivityButtonStyle       style;
 @property(nonatomic,assign)             CGFloat                     rectangleCornerRadius; /** will only update right away if in normal state */
-@property(nonatomic,readonly)           UIActivityIndicatorView*    indicator;
+@property(nonatomic,readonly)           UIActivityIndicatorView*    indicator; //exposed in case you 
 
 -(instancetype)initFrame:(CGRect)frame style:(JHActivityButtonStyle)style;
 
