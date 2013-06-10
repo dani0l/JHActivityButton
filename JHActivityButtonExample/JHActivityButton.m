@@ -234,10 +234,43 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self animateBackgroundFillToColor:colorToAnimateTo];
 }
 
+-(UIColor*)validateRGBProfileForColor:(UIColor*)inputColor{
+    
+    CGColorSpaceRef colorSpace = CGColorGetColorSpace([inputColor CGColor]);
+    CGColorSpaceModel colorSpaceModel = CGColorSpaceGetModel(colorSpace);
+    
+    if (colorSpaceModel == kCGColorSpaceModelRGB){
+        
+        /** RGBA color, don't change a thing */
+        
+    }else if (colorSpaceModel == kCGColorSpaceModelMonochrome){
+        
+        /** convert from white and alpha to RGBA */
+        
+        CGFloat white = 0.0, alpha = 0.0;
+        [inputColor getWhite:&white alpha:&alpha];
+        
+        inputColor = [UIColor colorWithRed:white green:white blue:white alpha:alpha];
+        
+    }else{
+        NSLog(@"Only RGB and Monochrome colors are supported");
+    }
+    
+    
+    return inputColor;
+}
+
 -(void)animateBackgroundFillToColor:(UIColor*)endColor{
     
+    endColor = [self validateRGBProfileForColor:endColor];
+    
     /** totally boss eased color transform */
-        
+    
+    
+//    _buttonBackgroundShapeLayer.fillColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0].CGColor;
+//    
+//    return;
+    
 	CGFloat t = 0.0;
 	CGFloat dt = 1.0 / (kDefaultFrameCount - 1);
     
@@ -247,20 +280,22 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 	{
         CGColorRef currentFillColor = _buttonBackgroundShapeLayer.fillColor;
         UIColor* currentColor = [UIColor colorWithCGColor:currentFillColor];
+        currentColor = [self validateRGBProfileForColor:currentColor];
         
         CGFloat currentRed = 0.0, currentGreen = 0.0, currentBlue = 0.0, currentAlpha =0.0;
         [currentColor getRed:&currentRed green:&currentGreen blue:&currentBlue alpha:&currentAlpha];
         
-        CGFloat endRed = 0.0, endGreen = 0.0, endBlue = 0.0, endAlpha =0.0;
+        CGFloat endRed = 0.0, endGreen = 0.0, endBlue = 0.0, endAlpha = 0.0;
         [endColor getRed:&endRed green:&endGreen blue:&endBlue alpha:&endAlpha];
         
         CGFloat easedRed = currentRed + _easingFunction(t) * (endRed - currentRed);
         CGFloat easedGreen = currentGreen + _easingFunction(t) * (endGreen - currentGreen);
         CGFloat easedBlue = currentBlue + _easingFunction(t) * (endBlue - currentBlue);
         CGFloat easedAlpha = currentAlpha + _easingFunction(t) * (endAlpha - currentAlpha);
+        
     
         UIColor* easedColor = [UIColor colorWithRed:easedRed green:easedGreen blue:easedBlue alpha:easedAlpha];
-	
+        	
 		[values addObject:(__bridge id)easedColor.CGColor];
 	}
 	
