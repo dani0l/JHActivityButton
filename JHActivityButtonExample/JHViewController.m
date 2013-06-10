@@ -38,7 +38,7 @@
         [activityButton setTitle:@"2013" forState:UIControlStateHighlighted];
         [activityButton.titleLabel setFont:[UIFont fontWithName:@"HelveticaNeue-UltraLight" size:22]];
         
-        activityButton.easingFunction = LinearInterpolation;
+        activityButton.easingFunction = BackEaseOut;
         activityButton.animationTime = 0.5;
         
         [activityButton.indicator setColor:[UIColor greenColor]];

@@ -234,42 +234,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self animateBackgroundFillToColor:colorToAnimateTo];
 }
 
--(UIColor*)validateRGBProfileForColor:(UIColor*)inputColor{
-    
-    CGColorSpaceRef colorSpace = CGColorGetColorSpace([inputColor CGColor]);
-    CGColorSpaceModel colorSpaceModel = CGColorSpaceGetModel(colorSpace);
-    
-    if (colorSpaceModel == kCGColorSpaceModelRGB){
-        
-        /** RGBA color, don't change a thing */
-        
-    }else if (colorSpaceModel == kCGColorSpaceModelMonochrome){
-        
-        /** convert from white and alpha to RGBA */
-        
-        CGFloat white = 0.0, alpha = 0.0;
-        [inputColor getWhite:&white alpha:&alpha];
-        
-        inputColor = [UIColor colorWithRed:white green:white blue:white alpha:alpha];
-        
-    }else{
-        NSLog(@"Only RGB and Monochrome colors are supported");
-    }
-    
-    
-    return inputColor;
-}
 
 -(void)animateBackgroundFillToColor:(UIColor*)endColor{
     
     endColor = [self validateRGBProfileForColor:endColor];
     
     /** totally boss eased color transform */
-    
-    
-//    _buttonBackgroundShapeLayer.fillColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0].CGColor;
-//    
-//    return;
     
 	CGFloat t = 0.0;
 	CGFloat dt = 1.0 / (kDefaultFrameCount - 1);
@@ -851,6 +821,32 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_rasterLabel setFrame:self.titleLabel.frame];
     
     return _rasterLabel;
+}
+
+-(UIColor*)validateRGBProfileForColor:(UIColor*)inputColor{
+    
+    CGColorSpaceRef colorSpace = CGColorGetColorSpace([inputColor CGColor]);
+    CGColorSpaceModel colorSpaceModel = CGColorSpaceGetModel(colorSpace);
+    
+    if (colorSpaceModel == kCGColorSpaceModelRGB){
+        
+        /** RGBA color, don't change a thing */
+        
+    }else if (colorSpaceModel == kCGColorSpaceModelMonochrome){
+        
+        /** convert from white and alpha to RGBA */
+        
+        CGFloat white = 0.0, alpha = 0.0;
+        [inputColor getWhite:&white alpha:&alpha];
+        
+        inputColor = [UIColor colorWithRed:white green:white blue:white alpha:alpha];
+        
+    }else{
+        NSLog(@"Only RGB and Monochrome colors are supported");
+    }
+    
+    
+    return inputColor;
 }
 
 @end
