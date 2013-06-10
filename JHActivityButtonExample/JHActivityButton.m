@@ -10,6 +10,8 @@
 #import <QuartzCore/QuartzCore.h>
 #import "CAKeyframeAnimation+AHEasing.h"
 
+
+
 @interface JHActivityButton (){
    
     CAShapeLayer*   _buttonBackgroundShapeLayer;
@@ -19,7 +21,15 @@
     UIColor*        _backgroundDisabledColor;
     UIColor*        _backgroundSelectedColor;
     NSDictionary*   _animationMethodTable;
+    UIImageView*    _rasterLabel;
+    
 }
+
+typedef NS_ENUM(NSInteger, JHAnimationDirection) {
+    
+    JHAnimationDirectionForward,
+    JHAnimationDirectionBackward
+};
 
 @property(nonatomic,assign) BOOL    isAnimating;
 
@@ -106,9 +116,14 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 -(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState completion:(JHAnimationCompletionBlock)callback{
     
+    if (!shouldAnimateToActivityState){
+        [self animateToDefaultState];
+        return;
+    }
+    
     /** manually trigger normal/activity state */
     
-    if (_isAnimating) return;
+//    if (_isAnimating) return;
     
     _isDisplayingActivityIndicator = shouldAnimateToActivityState;
     
@@ -119,6 +134,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     __block JHActivityButton* blockSelf = self;
     
+    NSLog(@"start animation");
     [CATransaction begin];
     [CATransaction setAnimationDuration:_animationTime];
     [CATransaction setCompletionBlock:^{
@@ -137,7 +153,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self performSelector:[self animationSelectorForCurrentStyle:shouldAnimateToActivityState]];
 #pragma clang diagnostic pop
     
-    [CATransaction commit];
+     [CATransaction commit];
 
 }
 
@@ -148,44 +164,40 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 -(void)drawBackgroundRectangle{
     
-    _buttonBackgroundShapeLayer             = [CAShapeLayer layer];
+    if (!_buttonBackgroundShapeLayer){
+        _buttonBackgroundShapeLayer             = [CAShapeLayer layer];
+        _buttonBackgroundShapeLayer.fillColor   = _backgroundNormalColor.CGColor;
+        [self.layer addSublayer:_buttonBackgroundShapeLayer];
+    }
+    
     _buttonBackgroundShapeLayer.path        = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:_rectangleCornerRadius].CGPath;
-    _buttonBackgroundShapeLayer.fillColor   = _backgroundNormalColor.CGColor;
     _buttonBackgroundShapeLayer.anchorPoint = CGPointMake(0.5f, 0.5f);
     
-    [self.layer addSublayer:_buttonBackgroundShapeLayer];
-}
 
--(void)animateBackToDefaultState{
-    
-    /** TODO: animate removal based on style */
-    [_indicator stopAnimating];
-    [_indicator removeFromSuperview];
 }
-
 
 #pragma mark -
 #pragma mark - UIButton State Change Handling
 
 /** KVO on self.state not possible as it's "synthesized from other flags." using existing UIButton Methods instead */
 
--(void)setHighlighted:(BOOL)highlighted{
-    [super setHighlighted:highlighted];
-
-}
-
--(void)setSelected:(BOOL)selected{
-    [super setSelected:selected];
-    
-    [self buttonStateChanged];
-}
-
-
--(void)setEnabled:(BOOL)enabled{
-    [super setEnabled:enabled];
-    
-    [self buttonStateChanged];
-}
+//-(void)setHighlighted:(BOOL)highlighted{
+//    [super setHighlighted:highlighted];
+//
+//}
+//
+//-(void)setSelected:(BOOL)selected{
+//    [super setSelected:selected];
+//    
+//    [self buttonStateChanged];
+//}
+//
+//
+//-(void)setEnabled:(BOOL)enabled{
+//    [super setEnabled:enabled];
+//    
+//    [self buttonStateChanged];
+//}
 
 
 -(void)buttonStateChanged{
@@ -193,20 +205,23 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     if (_shouldSuppressStateChangeOnTap)
         return;
     
-    [self animateToActivityIndicatorState:self.state != UIControlStateNormal];
+    [self animateToActivityIndicatorState:!_isDisplayingActivityIndicator];
+    
+    
+    CGColorRef colorToAnimateTo = _buttonBackgroundShapeLayer.fillColor;
     
     switch (self.state) {
         case UIControlStateNormal:
-            _buttonBackgroundShapeLayer.fillColor = _backgroundNormalColor.CGColor;
+            colorToAnimateTo = _backgroundNormalColor.CGColor;
             break;
         case UIControlStateHighlighted:
-            if(_backgroundHighlightedColor)_buttonBackgroundShapeLayer.fillColor    = _backgroundHighlightedColor.CGColor;
+            if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor.CGColor;
             break;
         case UIControlStateDisabled:
-            if(_backgroundDisabledColor)_buttonBackgroundShapeLayer.fillColor       =  _backgroundDisabledColor.CGColor;
+            if(_backgroundDisabledColor)colorToAnimateTo        =  _backgroundDisabledColor.CGColor;
             break;
         case UIControlStateSelected:
-            if(_backgroundSelectedColor)_buttonBackgroundShapeLayer.fillColor       = _backgroundSelectedColor.CGColor;
+            if(_backgroundSelectedColor)colorToAnimateTo       = _backgroundSelectedColor.CGColor;
             break;
         case UIControlStateApplication:
             //nothing yet
@@ -216,6 +231,14 @@ static CGFloat          kExpandWidePadding      = 10.0f;
             break;
     }
     
+    CABasicAnimation *colorAnimation = [CABasicAnimation animationWithKeyPath:@"fillColor"];
+    colorAnimation.duration     = _animationTime;
+    colorAnimation.fromValue    = (id)_buttonBackgroundShapeLayer.fillColor;
+    colorAnimation.toValue      = (__bridge id)colorToAnimateTo;
+    colorAnimation.fillMode     = kCAFillModeForwards;
+    colorAnimation.removedOnCompletion = NO;
+    [_buttonBackgroundShapeLayer addAnimation:colorAnimation forKey:@"fillColor"];
+        
 }
 
 #pragma mark - 
@@ -372,6 +395,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 }
 
 -(void)expandBackgroundHeightBottom{
+    
+    UIImageView *rasterLabel = [self rasterTitleLabel];
+    [self addSubview:rasterLabel];
+    self.titleLabel.alpha = 0;
     
     /** animate activity indicator */
     
@@ -614,7 +641,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
-    
+        
     /** move title down offscreen */
     [self translatePositionYInView:rasterLabel fromValue:0 toValue:self.bounds.size.height];
 
@@ -625,7 +652,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0]; 
     
     /** fade out title raster copy */
-    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0]; 
+    [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
     
 }
 
@@ -634,7 +661,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 -(void)animateToDefaultState{
     
-    
+  
 }
 
 #pragma mark -
@@ -753,10 +780,13 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 -(UIImageView*)rasterTitleLabel{
     
-    UIImageView *titleRasterCopy = [[UIImageView alloc]initWithImage:[self.titleLabel getRasterCopy]];
-    [titleRasterCopy setFrame:self.titleLabel.frame];
+    if (!_rasterLabel){
+        _rasterLabel = [[UIImageView alloc]initWithImage:[self.titleLabel getRasterCopy]];
+    }
     
-    return titleRasterCopy;
+    [_rasterLabel setFrame:self.titleLabel.frame];
+    
+    return _rasterLabel;
 }
 
 @end
