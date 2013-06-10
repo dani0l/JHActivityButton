@@ -208,20 +208,20 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self animateToActivityIndicatorState:!_isDisplayingActivityIndicator];
     
     
-    CGColorRef colorToAnimateTo = _buttonBackgroundShapeLayer.fillColor;
+    UIColor* colorToAnimateTo = [UIColor colorWithCGColor:_buttonBackgroundShapeLayer.fillColor];;
     
     switch (self.state) {
         case UIControlStateNormal:
-            colorToAnimateTo = _backgroundNormalColor.CGColor;
+            colorToAnimateTo = _backgroundNormalColor;
             break;
         case UIControlStateHighlighted:
-            if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor.CGColor;
+            if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
             break;
         case UIControlStateDisabled:
-            if(_backgroundDisabledColor)colorToAnimateTo        =  _backgroundDisabledColor.CGColor;
+            if(_backgroundDisabledColor)colorToAnimateTo        =  _backgroundDisabledColor;
             break;
         case UIControlStateSelected:
-            if(_backgroundSelectedColor)colorToAnimateTo       = _backgroundSelectedColor.CGColor;
+            if(_backgroundSelectedColor)colorToAnimateTo       = _backgroundSelectedColor;
             break;
         case UIControlStateApplication:
             //nothing yet
@@ -231,14 +231,45 @@ static CGFloat          kExpandWidePadding      = 10.0f;
             break;
     }
     
-    CABasicAnimation *colorAnimation = [CABasicAnimation animationWithKeyPath:@"fillColor"];
-    colorAnimation.duration     = _animationTime;
-    colorAnimation.fromValue    = (id)_buttonBackgroundShapeLayer.fillColor;
-    colorAnimation.toValue      = (__bridge id)colorToAnimateTo;
-    colorAnimation.fillMode     = kCAFillModeForwards;
-    colorAnimation.removedOnCompletion = NO;
-    [_buttonBackgroundShapeLayer addAnimation:colorAnimation forKey:@"fillColor"];
+    [self animateBackgroundFillToColor:colorToAnimateTo];
+}
+
+-(void)animateBackgroundFillToColor:(UIColor*)endColor{
+    
+    /** totally boss eased color transform */
         
+	CGFloat t = 0.0;
+	CGFloat dt = 1.0 / (kDefaultFrameCount - 1);
+    
+    NSMutableArray *values = [NSMutableArray arrayWithCapacity:kDefaultFrameCount];
+    
+	for(size_t frame = 0; frame < kDefaultFrameCount; ++frame, t += dt)
+	{
+        CGColorRef currentFillColor = _buttonBackgroundShapeLayer.fillColor;
+        UIColor* currentColor = [UIColor colorWithCGColor:currentFillColor];
+        
+        CGFloat currentRed = 0.0, currentGreen = 0.0, currentBlue = 0.0, currentAlpha =0.0;
+        [currentColor getRed:&currentRed green:&currentGreen blue:&currentBlue alpha:&currentAlpha];
+        
+        CGFloat endRed = 0.0, endGreen = 0.0, endBlue = 0.0, endAlpha =0.0;
+        [endColor getRed:&endRed green:&endGreen blue:&endBlue alpha:&endAlpha];
+        
+        CGFloat easedRed = currentRed + _easingFunction(t) * (endRed - currentRed);
+        CGFloat easedGreen = currentGreen + _easingFunction(t) * (endGreen - currentGreen);
+        CGFloat easedBlue = currentBlue + _easingFunction(t) * (endBlue - currentBlue);
+        CGFloat easedAlpha = currentAlpha + _easingFunction(t) * (endAlpha - currentAlpha);
+    
+        UIColor* easedColor = [UIColor colorWithRed:easedRed green:easedGreen blue:easedBlue alpha:easedAlpha];
+	
+		[values addObject:(__bridge id)easedColor.CGColor];
+	}
+	
+	CAKeyframeAnimation *colorAnimation = [CAKeyframeAnimation animationWithKeyPath:@"fillColor"];
+    colorAnimation.duration = _animationTime;
+    colorAnimation.fillMode = kCAFillModeForwards;
+    [colorAnimation setValues:values];
+    colorAnimation.removedOnCompletion = NO;
+	[_buttonBackgroundShapeLayer addAnimation:colorAnimation forKey:@"fillColor"];
 }
 
 #pragma mark - 

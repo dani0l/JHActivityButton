@@ -8,11 +8,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "JHActivityButtonExample/JHActivityButton.m"
-         timestampString = "392516024.513206"
+         timestampString = "392520069.224598"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "389"
-         endingLineNumber = "389"
+         startingLineNumber = "420"
+         endingLineNumber = "420"
          landmarkName = "-expandBackgroundHeightTop"
          landmarkType = "5">
       </FileBreakpoint>

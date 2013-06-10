@@ -30,16 +30,16 @@
         
         JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:i];
         [activityButton setBackgroundColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [activityButton setBackgroundColor:[UIColor blackColor] forState:UIControlStateHighlighted];
-        //        [activityButton setBackgroundColor:[UIColor cyanColor] forState:UIControlStateSelected];
+        [activityButton setBackgroundColor:[UIColor orangeColor] forState:UIControlStateHighlighted];
         
         [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
         [activityButton setTitle:@"WWDC" forState:UIControlStateNormal];
+        [activityButton setTitle:@"2013" forState:UIControlStateHighlighted];
         [activityButton.titleLabel setFont:[UIFont fontWithName:@"HelveticaNeue-UltraLight" size:22]];
         
         activityButton.easingFunction = BackEaseOut;
-        activityButton.animationTime = 0.5;
+        activityButton.animationTime = 2.5;
         
         [activityButton.indicator setColor:[UIColor greenColor]];
 
