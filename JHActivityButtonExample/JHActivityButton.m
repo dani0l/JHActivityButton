@@ -363,6 +363,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 -(void)expandBackgroundHeightTop{
     
+    
     UIImageView *rasterLabel = [self rasterTitleLabel];
     [self addSubview:rasterLabel];
     self.titleLabel.alpha = 0;
@@ -383,9 +384,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     [self addSubview:_indicator];
     [_indicator startAnimating];
-    
-    /* move activity indicator from offscreen top to center of original bounds */
-    [self translatePositionYInView:_indicator fromValue:-_indicator.frame.size.height toValue:0];
 
     /** fade in activity indicator */
     [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];

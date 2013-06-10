@@ -28,7 +28,7 @@
     
     for (int i=0; i<11; i++){
         
-        JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:JHActivityButtonStyleExpandDownBottom];
+        JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:i];
         [activityButton setBackgroundColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [activityButton setBackgroundColor:[UIColor blackColor] forState:UIControlStateHighlighted];
         //        [activityButton setBackgroundColor:[UIColor cyanColor] forState:UIControlStateSelected];
