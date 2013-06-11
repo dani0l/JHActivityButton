@@ -133,8 +133,11 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 //    }
     
     __block JHActivityButton* blockSelf = self;
-    
-    NSLog(@"start animation");
+        
+    /** must be outside of the CATransaction or the completion block will never run because the indicator animation continues indefinetely */
+    [self addSubview:_indicator];
+    [_indicator startAnimating];
+
     [CATransaction begin];
     [CATransaction setAnimationDuration:_animationTime];
     [CATransaction setCompletionBlock:^{
@@ -150,11 +153,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     /** query method dispatch table for correct method for current style and state */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-    [self performSelector:[self animationSelectorForCurrentStyle:shouldAnimateToActivityState]];
+    [self performSelector:[self animationSelectorForCurrentStyle:YES]];
 #pragma clang diagnostic pop
     
-     [CATransaction commit];
-
+    [CATransaction commit];
 }
 
 -(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState{
@@ -306,9 +308,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
-    [self addSubview:_indicator];
-    [_indicator startAnimating];
-    
     CGFloat zeroPosition = -xOffsetPoint.x + _indicator.bounds.size.width/2;
     zeroPosition += kExpandWidePadding;
     
@@ -345,8 +344,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
-    
     
     [self translatePositionXInView:_indicator fromValue:0.0 toValue:(newBounds.size.width/2 - _indicator.bounds.size.width/2)-kExpandWidePadding];
     
@@ -419,7 +416,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
 
     /** fade in activity indicator */
     [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
@@ -439,7 +435,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
     
     /* move activity indicator from offscreen top to center of original bounds */
     [self translatePositionYInView:_indicator fromValue:0 toValue:[self indicatorVerticalCenter]+(_indicator.frame.size.height/2)];
@@ -478,8 +473,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
-    
+
     [_buttonBackgroundShapeLayer addAnimation:shapeAnimation forKey:@"path"];
     [_buttonBackgroundShapeLayer setPath:rectanglePath];
     
@@ -530,7 +524,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
     
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
@@ -555,7 +548,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
 
     [self addSubview:_indicator];
-    [_indicator startAnimating];
     
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
@@ -585,9 +577,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
-    
-    
+
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
@@ -613,7 +603,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
     
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
@@ -642,9 +631,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
-    
-    
+
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;
     [self addSubview:rasterLabel];
@@ -670,7 +657,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     [self addSubview:_indicator];
-    [_indicator startAnimating];
 
     UIImageView *rasterLabel = [self rasterTitleLabel];
     self.titleLabel.alpha = 0;

@@ -30,7 +30,7 @@
         
         JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:i];
         [activityButton setBackgroundColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [activityButton setBackgroundColor:[UIColor blackColor] forState:UIControlStateHighlighted];
+        [activityButton setBackgroundColor:[UIColor grayColor] forState:UIControlStateHighlighted];
         
         [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
@@ -40,7 +40,7 @@
         
         activityButton.easingFunction = BackEaseOut;
         activityButton.animationTime = 0.5;
-        
+
         [activityButton.indicator setColor:[UIColor greenColor]];
 
         [_masterScrollView addSubview:activityButton];

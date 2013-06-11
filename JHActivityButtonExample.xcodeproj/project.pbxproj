@@ -280,6 +280,10 @@
 		3ED660C817597FE70030E5A2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_APPS_DIR)/Xcode5-DP.app/Contents/Developer/Library/Frameworks",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "JHActivityButtonExample/JHActivityButtonExample-Prefix.pch";
 				INFOPLIST_FILE = "JHActivityButtonExample/JHActivityButtonExample-Info.plist";
@@ -291,6 +295,10 @@
 		3ED660C917597FE70030E5A2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_APPS_DIR)/Xcode5-DP.app/Contents/Developer/Library/Frameworks",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "JHActivityButtonExample/JHActivityButtonExample-Prefix.pch";
 				INFOPLIST_FILE = "JHActivityButtonExample/JHActivityButtonExample-Info.plist";
