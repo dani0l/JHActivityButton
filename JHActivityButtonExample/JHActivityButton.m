@@ -10,8 +10,6 @@
 #import <QuartzCore/QuartzCore.h>
 #import "CAKeyframeAnimation+AHEasing.h"
 
-
-
 @interface JHActivityButton (){
    
     CAShapeLayer*   _buttonBackgroundShapeLayer;
@@ -22,14 +20,8 @@
     UIColor*        _backgroundSelectedColor;
     NSDictionary*   _animationMethodTable;
     UIImageView*    _rasterLabel;
-    
 }
 
-typedef NS_ENUM(NSInteger, JHAnimationDirection) {
-    
-    JHAnimationDirectionForward,
-    JHAnimationDirectionBackward
-};
 
 @property(nonatomic,assign) BOOL    isAnimating;
 
@@ -50,8 +42,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         
         [self prepareAnimationDispatchTable];
         
-        [self addTarget:self action:@selector(handleTouchUp) forControlEvents:UIControlEventTouchUpInside];
-        
         /** Defaults */
         _rectangleCornerRadius  = 0.1;
         _easingFunction         = BackEaseOut;
@@ -60,6 +50,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         
         _style                  = style;
         _indicator              = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+        
+        [self addTarget:self action:@selector(handleButtonUp) forControlEvents:UIControlEventTouchUpInside];
        
         /* center indicator vertically */
         /** indicator position and animation is controlled all at the CALayer level */
@@ -72,10 +64,23 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     return self;
 }
 
--(void)handleTouchUp{
-    [self buttonStateChanged];
+-(void)handleButtonUp{
+    [self setSelected:!_isDisplayingActivityIndicator];
 }
 
+-(void)setHighlighted:(BOOL)highlighted{
+    
+    [super setHighlighted:highlighted];
+    
+    [self backgroundColorStateDidChange];
+}
+
+-(void)setSelected:(BOOL)selected{
+    [super setSelected:selected];
+    
+    [self buttonStateChanged];
+    [self backgroundColorStateDidChange];
+}
 
 -(void)setRectangleCornerRadius:(CGFloat)rectangleCornerRadius{
     
@@ -170,55 +175,46 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 /** KVO on self.state not possible as it's "synthesized from other flags." using existing UIButton Methods instead */
 
-//-(void)setHighlighted:(BOOL)highlighted{
-//    [super setHighlighted:highlighted];
-//
-//}
-//
-//-(void)setSelected:(BOOL)selected{
-//    [super setSelected:selected];
-//    
-//    [self buttonStateChanged];
-//}
-//
-//
-//-(void)setEnabled:(BOOL)enabled{
-//    [super setEnabled:enabled];
-//    
-//    [self buttonStateChanged];
-//}
-
-
 -(void)buttonStateChanged{
     
     if (_shouldSuppressStateChangeOnTap)
         return;
     
     [self animateToActivityIndicatorState:!_isDisplayingActivityIndicator];
+}
+
+-(void)backgroundColorStateDidChange{
     
+//    NSLog(@"normal %d highlighted %d selected %d application %d reserved %d",self.state == UIControlStateNormal,self.state == UIControlStateHighlighted,self.state == UIControlStateSelected, self.state == UIControlStateApplication, self.state == UIControlStateReserved);
     
-    UIColor* colorToAnimateTo = [UIColor colorWithCGColor:_buttonBackgroundShapeLayer.fillColor];;
+    UIColor* colorToAnimateTo = [UIColor colorWithCGColor:_buttonBackgroundShapeLayer.fillColor];
     
-    switch (self.state) {
-        case UIControlStateNormal:
-            colorToAnimateTo = _backgroundNormalColor;
-            break;
-        case UIControlStateHighlighted:
-            if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
-            break;
-        case UIControlStateDisabled:
-            if(_backgroundDisabledColor)colorToAnimateTo        =  _backgroundDisabledColor;
-            break;
-        case UIControlStateSelected:
-            if(_backgroundSelectedColor)colorToAnimateTo       = _backgroundSelectedColor;
-            break;
-        case UIControlStateApplication:
-            //nothing yet
-            break;
-        case UIControlStateReserved:
-            //nothing yet
-            break;
+    if (self.state == UIControlStateDisabled){
+        
+        if(_backgroundDisabledColor)colorToAnimateTo =  _backgroundDisabledColor;
+     
+    }else if (self.state == UIControlStateNormal){
+        
+        colorToAnimateTo = _backgroundNormalColor;
+        
+    }else if (self.state == UIControlStateSelected){
+        
+        if(_backgroundSelectedColor)colorToAnimateTo       = _backgroundSelectedColor;
+
+    }else if (self.state == UIControlStateHighlighted){
+
+        if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
+        
+    }else if (UIControlStateHighlighted | UIControlStateSelected){
+        
+        NSLog(@"selected and highlighted state");
+        if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
+        
+    }else{
+        NSLog(@"unknown state");
     }
+    
+
     
     [self animateBackgroundFillToColor:colorToAnimateTo];
 }
@@ -528,8 +524,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [_buttonBackgroundShapeLayer addAnimation:shapeAnimation forKey:@"path"];
         
         [CATransaction commit];
-        
-        
     }
 
 }
@@ -550,6 +544,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         CGFloat startRadius = currentRadius;
         
         CGFloat radius = startRadius + _easingFunction(t) * (_rectangleCornerRadius - startRadius);
+        if (radius < 0) radius = 0;
         
         CGFloat adjustedWidth = radius + _easingFunction(t) * (self.bounds.size.width - radius);
         CGFloat widthDelta = adjustedWidth - self.bounds.size.width;
@@ -587,6 +582,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         CGFloat startRadius = _rectangleCornerRadius;
         
         CGFloat radius = startRadius + _easingFunction(t) * (endRadius - startRadius);
+        if (radius < 0) radius = 0;
     
         CGFloat adjustedWidth = self.bounds.size.width + _easingFunction(t) * (endRadius - self.bounds.size.width);
         CGFloat widthDelta = adjustedWidth - self.bounds.size.width;
@@ -990,9 +986,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 -(UIImageView*)rasterTitleLabel{
     
     if (!_rasterLabel){
-        _rasterLabel = [[UIImageView alloc]initWithImage:[self.titleLabel getRasterCopy]];
+        _rasterLabel = [[UIImageView alloc]init];
     }
     
+    [_rasterLabel setImage:[self.titleLabel getRasterCopyForceOpaque:YES]];
     [_rasterLabel setFrame:self.titleLabel.frame];
     
     return _rasterLabel;
@@ -1028,9 +1025,13 @@ static CGFloat          kExpandWidePadding      = 10.0f;
                                     
 @implementation UIView (Raster)
 
--(UIImage*)getRasterCopy{
+-(UIImage*)getRasterCopyForceOpaque:(BOOL)fullOpacity{
     
     /* returns UIImage of any UIView */
+    
+    CGFloat incomingAlpha = self.alpha;
+    
+    if (fullOpacity) self.alpha = 1;
     
     UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.opaque, 0.0);
     
@@ -1038,6 +1039,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     UIImage *resultingImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
+    
+    if (fullOpacity) self.alpha = incomingAlpha;
     
     return resultingImage;
 }

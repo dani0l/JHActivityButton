@@ -47,5 +47,5 @@ typedef NS_ENUM(NSInteger, JHActivityButtonStyle) {
 
 
 @interface UIView (Raster)
--(UIImage*)getRasterCopy;
+-(UIImage*)getRasterCopyForceOpaque:(BOOL)fullOpacity;
 @end
