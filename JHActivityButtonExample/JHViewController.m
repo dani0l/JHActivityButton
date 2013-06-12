@@ -45,7 +45,7 @@
         [activityButton.titleLabel setFont:[UIFont fontWithName:@"HelveticaNeue-UltraLight" size:22]];
         
         activityButton.easingFunction = BackEaseOut;
-        activityButton.animationTime = 1.3;
+        activityButton.animationTime = 0.3;
 
         
         

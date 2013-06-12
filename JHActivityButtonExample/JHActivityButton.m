@@ -225,15 +225,11 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         
         NSLog(@"highlighted and selected state");
         
-        return;
-        
         if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
         
     }else{
         NSLog(@"unknown state");
     }
-    
-
     
     [self animateBackgroundFillToColor:colorToAnimateTo];
 }
