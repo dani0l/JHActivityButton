@@ -28,7 +28,7 @@
     
     for (int i=0; i<11; i++){
         
-        JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:i];
+        JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:JHActivityButtonStyleContractCircle];
         [activityButton setBackgroundColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [activityButton setBackgroundColor:[UIColor grayColor] forState:UIControlStateHighlighted];
         
@@ -38,7 +38,7 @@
         [activityButton setTitle:@"2013" forState:UIControlStateHighlighted];
         [activityButton.titleLabel setFont:[UIFont fontWithName:@"HelveticaNeue-UltraLight" size:22]];
         
-        activityButton.easingFunction = BackEaseOut;
+        activityButton.easingFunction = LinearInterpolation;
         activityButton.animationTime = 0.5;
 
         [activityButton.indicator setColor:[UIColor greenColor]];
