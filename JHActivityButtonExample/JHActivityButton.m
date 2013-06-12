@@ -65,21 +65,30 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 }
 
 -(void)handleButtonUp{
+    
+    NSLog(@"button up");
     [self setSelected:!_isDisplayingActivityIndicator];
 }
 
 -(void)setHighlighted:(BOOL)highlighted{
+     [super setHighlighted:highlighted];
     
-    [super setHighlighted:highlighted];
     
+    NSLog(@"highlighted %d",highlighted);
+    /** prevent the background color from going back to normal state color after button up and before set selected color state kicks in */
+//    if (!highlighted && !_isDisplayingActivityIndicator)
+//        return;
+
     [self backgroundColorStateDidChange];
 }
 
 -(void)setSelected:(BOOL)selected{
     [super setSelected:selected];
     
-    [self buttonStateChanged];
+    NSLog(@"set selected");
+    
     [self backgroundColorStateDidChange];
+    [self buttonStateChanged];
 }
 
 -(void)setRectangleCornerRadius:(CGFloat)rectangleCornerRadius{
@@ -134,7 +143,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [CATransaction begin];
     [CATransaction setAnimationDuration:_animationTime];
     [CATransaction setCompletionBlock:^{
-        NSLog(@"transaction complete");
         _isDisplayingActivityIndicator = !_isDisplayingActivityIndicator;
         blockSelf.isAnimating = NO;
         if (callback){
@@ -191,23 +199,34 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     if (self.state == UIControlStateDisabled){
         
+        NSLog(@"disabled state");
+        
         if(_backgroundDisabledColor)colorToAnimateTo =  _backgroundDisabledColor;
      
     }else if (self.state == UIControlStateNormal){
+        
+        NSLog(@"normal state");
         
         colorToAnimateTo = _backgroundNormalColor;
         
     }else if (self.state == UIControlStateSelected){
         
+         NSLog(@"selected state");
+        
         if(_backgroundSelectedColor)colorToAnimateTo       = _backgroundSelectedColor;
 
     }else if (self.state == UIControlStateHighlighted){
+        
+         NSLog(@"highlighted state");
 
         if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
         
     }else if (UIControlStateHighlighted | UIControlStateSelected){
         
-        NSLog(@"selected and highlighted state");
+        NSLog(@"highlighted and selected state");
+        
+        return;
+        
         if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
         
     }else{
@@ -224,6 +243,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     endColor = [self validateRGBProfileForColor:endColor];
     
+    CAShapeLayer* presentationLayer = (CAShapeLayer*)_buttonBackgroundShapeLayer.presentationLayer;
+        
     /** totally boss eased color transform */
     
 	CGFloat t = 0.0;
@@ -233,7 +254,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
 	for(size_t frame = 0; frame < kDefaultFrameCount; ++frame, t += dt)
 	{
-        CGColorRef currentFillColor = _buttonBackgroundShapeLayer.fillColor;
+        CGColorRef currentFillColor = presentationLayer.fillColor;
         UIColor* currentColor = [UIColor colorWithCGColor:currentFillColor];
         currentColor = [self validateRGBProfileForColor:currentColor];
         

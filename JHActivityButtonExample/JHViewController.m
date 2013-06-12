@@ -29,23 +29,23 @@
     for (int i=0; i<11; i++){
         
         JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:i];
-        [activityButton setBackgroundColor:[UIColor cyanColor] forState:UIControlStateNormal];
-        [activityButton setBackgroundColor:[UIColor grayColor] forState:UIControlStateHighlighted];
-        [activityButton setBackgroundColor:[UIColor purpleColor] forState:UIControlStateSelected];
-        [activityButton setBackgroundColor:[UIColor blackColor] forState:UIControlStateDisabled];
+        [activityButton setBackgroundColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [activityButton setBackgroundColor:[UIColor greenColor] forState:UIControlStateHighlighted];
+        [activityButton setBackgroundColor:[UIColor blueColor] forState:UIControlStateSelected];
+//        [activityButton setBackgroundColor:[UIColor blackColor] forState:UIControlStateDisabled];
         
-        [activityButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-        [activityButton setTitleColor:[UIColor orangeColor] forState:UIControlStateHighlighted];
-        [activityButton setTitleColor:[UIColor greenColor] forState:UIControlStateSelected];
+//        [activityButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+//        [activityButton setTitleColor:[UIColor orangeColor] forState:UIControlStateHighlighted];
+//        [activityButton setTitleColor:[UIColor greenColor] forState:UIControlStateSelected];
         
-        [activityButton setTitle:@"WWDC" forState:UIControlStateNormal];
-        [activityButton setTitle:@"highlight" forState:UIControlStateHighlighted];
-        [activityButton setTitle:@"2013" forState:UIControlStateSelected];
+//        [activityButton setTitle:@"WWDC" forState:UIControlStateNormal];
+//        [activityButton setTitle:@"highlight" forState:UIControlStateHighlighted];
+//        [activityButton setTitle:@"2013" forState:UIControlStateSelected];
         
         [activityButton.titleLabel setFont:[UIFont fontWithName:@"HelveticaNeue-UltraLight" size:22]];
         
-        activityButton.easingFunction = ExponentialEaseOut;
-        activityButton.animationTime = 0.3;
+        activityButton.easingFunction = BackEaseOut;
+        activityButton.animationTime = 1.3;
 
         
         
