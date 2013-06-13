@@ -29,11 +29,11 @@
 
 static CGFloat          kExpandFromCenterFactor = 0.27;
 static CGFloat          kIndicatorWidth         = 36.0f;
-static NSUInteger       kDefaultFrameCount      = 60;
+static NSUInteger       kDefaultFrameCount      = 240;
 static CGFloat          kExpandWidePadding      = 10.0f;
 
 
-@implementation JHActivityButton
+@implementation JHActivityButton 
 
 
 -(instancetype)initFrame:(CGRect)frame style:(JHActivityButtonStyle)style{
