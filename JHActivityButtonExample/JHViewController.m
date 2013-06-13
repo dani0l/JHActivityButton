@@ -27,8 +27,6 @@
     CGFloat yLoc = 100;
     
     [[JHActivityButton appearance]setAnimationTime:0.5];
-    [[JHActivityButton appearance]setShouldSuppressStateChangeOnTap:YES];
-    [[JHActivityButton appearance]setRectangleCornerRadius:20.0];
     
     for (int i=0; i<11; i++){
         
