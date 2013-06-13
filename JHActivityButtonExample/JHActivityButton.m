@@ -70,6 +70,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 
 -(void)handleButtonUp{
+    
+    if (_shouldSuppressStateChangeOnTap)
+        return;
+    
     [self setSelected:!_isDisplayingActivityIndicator];
 }
 
@@ -196,6 +200,9 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 }
 
 -(void)backgroundColorStateDidChange{
+    
+    if (_shouldSuppressStateChangeOnTap)
+        return;
         
     UIColor* colorToAnimateTo = [UIColor colorWithCGColor:_buttonBackgroundShapeLayer.fillColor];
     

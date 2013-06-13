@@ -27,7 +27,7 @@
     CGFloat yLoc = 100;
     
     [[JHActivityButton appearance]setAnimationTime:0.5];
-//    [[JHActivityButton appearance]setShouldSuppressStateChangeOnTap:YES];
+    [[JHActivityButton appearance]setShouldSuppressStateChangeOnTap:YES];
     [[JHActivityButton appearance]setRectangleCornerRadius:20.0];
     
     for (int i=0; i<11; i++){
@@ -39,7 +39,7 @@
         [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateHighlighted];
         [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
-        
+                
         /** the bounds of the title label is always limited to the bounds of the original button size before expansion */
         [activityButton setTitle:@"WWDC" forState:UIControlStateNormal];
         [activityButton setTitle:@"2013" forState:UIControlStateSelected];
