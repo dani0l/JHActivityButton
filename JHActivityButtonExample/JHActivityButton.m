@@ -106,9 +106,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [self fauxTitleLabel];
     [self addSubview:_fauxLabel];
     
-    /** update the raster title size */
-//    [self rasterTitleLabel];
-//    [self addSubview:_fauxLabel];
 }
 
 -(void)setBackgroundColor:(UIColor *)color forState:(UIControlState)state{
@@ -200,47 +197,30 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 }
 
 -(void)backgroundColorStateDidChange{
-    
-//    [self rasterTitleLabel];
-    
-//    NSLog(@"normal %d highlighted %d selected %d application %d reserved %d",self.state == UIControlStateNormal,self.state == UIControlStateHighlighted,self.state == UIControlStateSelected, self.state == UIControlStateApplication, self.state == UIControlStateReserved);
-    
+        
     UIColor* colorToAnimateTo = [UIColor colorWithCGColor:_buttonBackgroundShapeLayer.fillColor];
     
     if (self.state == UIControlStateDisabled){
-        
-        NSLog(@"disabled state");
-        
+                
         if(_backgroundDisabledColor)colorToAnimateTo =  _backgroundDisabledColor;
      
     }else if (self.state == UIControlStateNormal){
-        
-        NSLog(@"normal state");
-        
+                
         colorToAnimateTo = _backgroundNormalColor;
         
     }else if (self.state == UIControlStateSelected){
-        
-         NSLog(@"selected state");
         
         if(_backgroundSelectedColor)colorToAnimateTo       = _backgroundSelectedColor;
 
     }else if (self.state == UIControlStateHighlighted){
         
-         NSLog(@"highlighted state");
-
         if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
         
     }else if (UIControlStateHighlighted | UIControlStateSelected){
-        
-        NSLog(@"highlighted and selected state");
-        
+            
         if(_backgroundHighlightedColor) colorToAnimateTo    = _backgroundHighlightedColor;
         
-    }else{
-        NSLog(@"unknown state");
     }
-    
     [self animateBackgroundFillToColor:colorToAnimateTo];
 }
 
