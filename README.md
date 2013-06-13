@@ -5,12 +5,10 @@ UIButton Subclass with a built-in UIActivityIndicator. Based off the Ladda conce
 
 JHActivityButton makes use of the AHEasing library.
 
-TODO: 
-- Reverse animations (back to normal state)
-- UIAppearance support for activity indicator and background color states.
-- Combine animations methods to reduce code duplication
 
-Known Issues: 
+Known Issues:
 
-- Tons, it's early days
+- Only kCGColorSpaceModelRGB and kCGColorSpaceModelMonochrome colors are supported for the eased color transform for the background
+- Some color transitions may not properly support Back/Elastic/Bounce easing functions. You can't get more black than black or more white than white.
+
  
