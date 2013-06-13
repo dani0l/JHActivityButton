@@ -22,7 +22,6 @@
     UILabel*        _fauxLabel;
 }
 
-
 @property(nonatomic,assign) BOOL    isAnimating;
 
 @end
