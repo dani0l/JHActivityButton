@@ -44,8 +44,3 @@ typedef NS_ENUM(NSInteger, JHActivityButtonStyle) {
 -(void)animateToActivityIndicatorState:(BOOL)shouldAnimateToActivityState completion:(JHAnimationCompletionBlock)callback;
 
 @end
-
-
-@interface UIView (Raster)
--(UIImage*)getRasterCopyForceOpaque:(BOOL)fullOpacity;
-@end

@@ -19,7 +19,7 @@
     UIColor*        _backgroundDisabledColor;
     UIColor*        _backgroundSelectedColor;
     NSDictionary*   _animationMethodTable;
-    UIImageView*    _rasterLabel;
+    UILabel*        _fauxLabel;
 }
 
 
@@ -41,6 +41,11 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     if (self = [super initWithFrame:frame]){
         
         [self prepareAnimationDispatchTable];
+        
+        [self.titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew context:nil];
+        [self.titleLabel addObserver:self forKeyPath:@"textColor" options:NSKeyValueObservingOptionNew context:nil];
+        
+        self.titleLabel.alpha = 0;
         
         /** Defaults */
         _rectangleCornerRadius  = 0.1;
@@ -64,29 +69,20 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     return self;
 }
 
+
 -(void)handleButtonUp{
-    
-    NSLog(@"button up");
     [self setSelected:!_isDisplayingActivityIndicator];
 }
 
 -(void)setHighlighted:(BOOL)highlighted{
-     [super setHighlighted:highlighted];
+    [super setHighlighted:highlighted];
     
-    
-    NSLog(@"highlighted %d",highlighted);
-    /** prevent the background color from going back to normal state color after button up and before set selected color state kicks in */
-//    if (!highlighted && !_isDisplayingActivityIndicator)
-//        return;
-
     [self backgroundColorStateDidChange];
 }
 
 -(void)setSelected:(BOOL)selected{
     [super setSelected:selected];
-    
-    NSLog(@"set selected");
-    
+
     [self backgroundColorStateDidChange];
     [self buttonStateChanged];
 }
@@ -101,6 +97,18 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     _buttonBackgroundShapeLayer.path = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:_rectangleCornerRadius].CGPath;
     
+}
+
+-(void)setTitle:(NSString *)title forState:(UIControlState)state{
+    [super setTitle:title forState:state];
+ 
+    
+    [self fauxTitleLabel];
+    [self addSubview:_fauxLabel];
+    
+    /** update the raster title size */
+//    [self rasterTitleLabel];
+//    [self addSubview:_fauxLabel];
 }
 
 -(void)setBackgroundColor:(UIColor *)color forState:(UIControlState)state{
@@ -139,7 +147,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     [_indicator startAnimating];
     
     _isAnimating = YES;
-
+    
     [CATransaction begin];
     [CATransaction setAnimationDuration:_animationTime];
     [CATransaction setCompletionBlock:^{
@@ -192,6 +200,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 }
 
 -(void)backgroundColorStateDidChange{
+    
+//    [self rasterTitleLabel];
     
 //    NSLog(@"normal %d highlighted %d selected %d application %d reserved %d",self.state == UIControlStateNormal,self.state == UIControlStateHighlighted,self.state == UIControlStateSelected, self.state == UIControlStateApplication, self.state == UIControlStateReserved);
     
@@ -279,6 +289,18 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 	[_buttonBackgroundShapeLayer addAnimation:colorAnimation forKey:@"fillColor"];
 }
 
+#pragma mark -
+#pragma mark - KVO on titleLabel.text
+
+- (void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
+   
+    if ([keyPath isEqual:@"text"]) {
+        _fauxLabel.text = self.titleLabel.text;
+    }else if ([keyPath isEqual:@"textColor"]){
+        [_fauxLabel setTextColor:self.titleLabel.textColor];
+    }
+}
+
 #pragma mark - 
 #pragma mark Style Specific Animation Methods
 
@@ -287,29 +309,26 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 #pragma mark - expand from center left/right
 
 -(void)animateBackgroundExpandLeft{
-    
-    /** animate label */
-    
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    [self addSubview:rasterLabel];
-    self.titleLabel.alpha = 0;
-    
+        
     CGRect newBounds       = self.bounds;
     newBounds.size.width   += ((self.bounds.size.width * kExpandFromCenterFactor)*2);
     
     CGFloat offsetDelta = (newBounds.size.width - self.bounds.size.width)/2;
-    CGPoint existingLayerPoint  = rasterLabel.layer.position;
+    CGPoint existingLayerPoint  = _fauxLabel.layer.position;
     CGPoint xOffsetPoint        = existingLayerPoint;
     xOffsetPoint.x              += offsetDelta;
     
     CGFloat zeroPosition = -xOffsetPoint.x + _indicator.bounds.size.width/2;
     zeroPosition += kExpandWidePadding;
+
+    // calculated as delta for core animation
+    CGFloat labelXPosDelta =  (newBounds.size.width - self.frame.size.width) /2;
     
-   [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
+    [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     if (!_isDisplayingActivityIndicator){
         
-        [self positionView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
+        [self translatePositionXInView:_fauxLabel fromValue:0 toValue:labelXPosDelta];
         
         /** animate activity indicator */
         [self translatePositionXInView:_indicator fromValue:0 toValue:zeroPosition];
@@ -317,10 +336,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         /** fade in activity indicator */
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
-        
     }else{
-        
-        [self positionView:rasterLabel fromPoint:xOffsetPoint toPoint:existingLayerPoint];
+        [self translatePositionXInView:_fauxLabel fromValue:labelXPosDelta toValue:0];
         
         /** animate activity indicator */
         [self translatePositionXInView:_indicator fromValue:zeroPosition toValue:0];
@@ -336,25 +353,22 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 -(void)animateBackgroundExpandRight{
     
-    /** animate label */
-    
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    [self addSubview:rasterLabel];
-    self.titleLabel.alpha = 0;
-    
     CGRect newBounds       = self.bounds;
     newBounds.size.width   += ((self.bounds.size.width * kExpandFromCenterFactor)*2);
     
     CGFloat offsetDelta = (newBounds.size.width - self.bounds.size.width)/2;
-    CGPoint existingLayerPoint  = rasterLabel.layer.position;
+    CGPoint existingLayerPoint  = _fauxLabel.layer.position;
     CGPoint xOffsetPoint        = existingLayerPoint;
     xOffsetPoint.x              -= offsetDelta;
     
-       [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
+    // calculated as delta for core animation
+    CGFloat labelXPosDelta =  -(newBounds.size.width - self.frame.size.width) /2;
+    
+    [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     if (!_isDisplayingActivityIndicator){
-    
-        [self positionView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
+        
+        [self translatePositionXInView:_fauxLabel fromValue:0 toValue:labelXPosDelta];
         
         /** animate activity indicator */
         [self translatePositionXInView:_indicator fromValue:0.0 toValue:(newBounds.size.width/2 - _indicator.bounds.size.width/2)-kExpandWidePadding];
@@ -364,8 +378,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         
     }else{
         
-        
-        [self positionView:rasterLabel fromPoint:xOffsetPoint toPoint:existingLayerPoint];
+        [self translatePositionXInView:_fauxLabel fromValue:labelXPosDelta toValue:0];
         
         /** animate activity indicator */
         [self translatePositionXInView:_indicator fromValue:(newBounds.size.width/2 - _indicator.bounds.size.width/2)-kExpandWidePadding toValue:0];
@@ -426,31 +439,29 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 -(void)expandBackgroundHeightTop{
     
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    [self addSubview:rasterLabel];
-    self.titleLabel.alpha = 0;
-    
     /* calculate background height and activity indicator position */
     
     CGRect newBounds       = self.bounds;
     newBounds.size.height  *= 2;
 
-    CGPoint existingLayerPoint  = rasterLabel.layer.position;
+    CGPoint existingLayerPoint  = _fauxLabel.layer.position;
     CGPoint xOffsetPoint        = existingLayerPoint;
     xOffsetPoint.y              += self.bounds.size.height;
+    
+    CGFloat labelYPosDelta =  (newBounds.size.height - self.frame.size.height);
     
     /** center activity indicator */
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
     if (!_isDisplayingActivityIndicator){
        
-        [self positionView:rasterLabel fromPoint:existingLayerPoint toPoint:xOffsetPoint];
+        [self translatePositionYInView:_fauxLabel fromValue:0 toValue:labelYPosDelta];
         /** fade in activity indicator */
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
     }else{
        
-        [self positionView:rasterLabel fromPoint:xOffsetPoint toPoint:existingLayerPoint];
+        [self translatePositionYInView:_fauxLabel fromValue:labelYPosDelta toValue:0];
         /** fade in activity indicator */
         [self modifyOpacityOnView:_indicator fromOpacity:1.0 toOpacity:0.0];
     }
@@ -459,12 +470,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 }
 
--(void)expandBackgroundHeightBottom{
-    
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    [self addSubview:rasterLabel];
-    self.titleLabel.alpha = 0;
-    
+-(void)expandBackgroundHeightBottom{    
     /** animate activity indicator */
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
@@ -516,7 +522,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     if (!_isDisplayingActivityIndicator){
         
-        self.titleLabel.alpha = 0;
+        _fauxLabel.alpha = 0;
         
         CAKeyframeAnimation* shapeAnimation = [self circleShapeAnimationForPathUpdateToRadius:endRadius];
         
@@ -532,7 +538,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         
         [CATransaction begin];
         [CATransaction setCompletionBlock:^{
-            self.titleLabel.alpha = 1;
+            _fauxLabel.alpha = 1;
         }];
         
         CAKeyframeAnimation* shapeAnimation = [self defaultShapeAnimationForPathUpdateFromRadius:endRadius];
@@ -625,17 +631,11 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 -(void)zoomOutTitleAndIndicator{
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
-    
-    [self addSubview:_indicator];
-    
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    self.titleLabel.alpha = 0;
-    [self addSubview:rasterLabel];
-    
+
     if (!_isDisplayingActivityIndicator){
         
         /** scale the label from regular size to small */
-        [self scaleView:rasterLabel fromScale:1.0 toScale:0.8];
+        [self scaleView:_fauxLabel fromScale:1.0 toScale:0.8];
         
         /** scale the activity indicator from twice the regular size to the regular size */
         [self scaleView:_indicator fromScale:2.0 toScale:1.0];
@@ -644,12 +644,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:1.0 toOpacity:0.0];
         
     }else{
         
         /** scale the label from regular size to small */
-        [self scaleView:rasterLabel fromScale:0.8 toScale:1.0];
+        [self scaleView:_fauxLabel fromScale:0.8 toScale:1.0];
         
         /** scale the activity indicator from twice the regular size to the regular size */
         [self scaleView:_indicator fromScale:1.0 toScale:2.0];
@@ -658,7 +658,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:1.0 toOpacity:0.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:0.0 toOpacity:1.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:0.0 toOpacity:1.0];
         
     }
 
@@ -667,17 +667,11 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 -(void)zoomInTitleAndIndicator{
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
-
-    [self addSubview:_indicator];
-    
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    self.titleLabel.alpha = 0;
-    [self addSubview:rasterLabel];
     
     if (!_isDisplayingActivityIndicator){
        
         /** scale the label from regular size to extra large */
-        [self scaleView:rasterLabel fromScale:1.0 toScale:2.0];
+        [self scaleView:_fauxLabel fromScale:1.0 toScale:2.0];
         
         /** scale the activity indicator from small the regular size */
         [self scaleView:_indicator fromScale:0.3 toScale:1.0];
@@ -686,12 +680,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:1.0 toOpacity:0.0];
         
     }else{
        
         /** scale the label from regular size to extra large */
-        [self scaleView:rasterLabel fromScale:2.0 toScale:1.0];
+        [self scaleView:_fauxLabel fromScale:2.0 toScale:1.0];
         
         /** scale the activity indicator from small the regular size */
         [self scaleView:_indicator fromScale:1.0 toScale:0.3];
@@ -700,7 +694,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:1.0 toOpacity:0.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:0.0 toOpacity:1.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:0.0 toOpacity:1.0];
     }
 }
 
@@ -712,17 +706,11 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     self.clipsToBounds = YES;
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
-    
-    [self addSubview:_indicator];
-
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    self.titleLabel.alpha = 0;
-    [self addSubview:rasterLabel];
-    
+        
     if (!_isDisplayingActivityIndicator){
         
         /** move label from center to offscreen left */
-        [self translatePositionXInView:rasterLabel fromValue:0 toValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width)];
+        [self translatePositionXInView:_fauxLabel fromValue:0 toValue:-(_fauxLabel.frame.origin.x + _fauxLabel.frame.size.width)];
         
         /** move indicator from offscreen right to center */
         [self translatePositionXInView:_indicator fromValue:self.bounds.size.width toValue:0];
@@ -731,12 +719,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:1.0 toOpacity:0.0];
         
     }else{
         
         /** move label from center to offscreen left */
-        [self translatePositionXInView:rasterLabel fromValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width) toValue:0];
+        [self translatePositionXInView:_fauxLabel fromValue:-(_fauxLabel.frame.origin.x + _fauxLabel.frame.size.width) toValue:0];
         
         /** move indicator from offscreen right to center */
         [self translatePositionXInView:_indicator fromValue:0 toValue:self.bounds.size.width];
@@ -745,7 +733,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:1.0 toOpacity:0.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:0.0 toOpacity:1.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:0.0 toOpacity:1.0];
         
     }
     
@@ -759,39 +747,33 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
-    [self addSubview:_indicator];
-    
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    self.titleLabel.alpha = 0;
-    [self addSubview:rasterLabel];
-    
     if (!_isDisplayingActivityIndicator){
         
         /** animate label from center to offscreen right */
-        [self translatePositionXInView:rasterLabel fromValue:0 toValue:self.bounds.size.width];
+        [self translatePositionXInView:_fauxLabel fromValue:0 toValue:self.bounds.size.width];
         
         /** move indicator from offscreen right to center */
-        [self translatePositionXInView:_indicator fromValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width) toValue:0];
+        [self translatePositionXInView:_indicator fromValue:-(_fauxLabel.frame.origin.x + _fauxLabel.frame.size.width) toValue:0];
         
         /** fade in activity indicator */
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:1.0 toOpacity:0.0];
         
     }else{
         
         /** animate label from center to offscreen right */
-        [self translatePositionXInView:rasterLabel fromValue:self.bounds.size.width toValue:0];
+        [self translatePositionXInView:_fauxLabel fromValue:self.bounds.size.width toValue:0];
         
         /** move indicator from offscreen right to center */
-        [self translatePositionXInView:_indicator fromValue:0 toValue:-(rasterLabel.frame.origin.x + rasterLabel.frame.size.width)];
+        [self translatePositionXInView:_indicator fromValue:0 toValue:-(_fauxLabel.frame.origin.x + _fauxLabel.frame.size.width)];
         
         /** fade in activity indicator */
         [self modifyOpacityOnView:_indicator fromOpacity:1.0 toOpacity:0.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:0.0 toOpacity:1.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:0.0 toOpacity:1.0];
     }
     
     
@@ -806,15 +788,9 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
-    [self addSubview:_indicator];
-
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    self.titleLabel.alpha = 0;
-    [self addSubview:rasterLabel];
-    
     if (!_isDisplayingActivityIndicator){
         /** move title updward offscreen */
-        [self translatePositionYInView:rasterLabel fromValue:0 toValue:-(rasterLabel.frame.origin.y + rasterLabel.frame.size.height)];
+        [self translatePositionYInView:_fauxLabel fromValue:0 toValue:-(_fauxLabel.frame.origin.y + _fauxLabel.frame.size.height)];
         
         /** move indicator updward to center */
         [self translatePositionYInView:_indicator fromValue:self.bounds.size.height toValue:0];
@@ -823,12 +799,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:1.0 toOpacity:0.0];
         
     }else{
         
         /** move title updward offscreen */
-        [self translatePositionYInView:rasterLabel fromValue:-(rasterLabel.frame.origin.y + rasterLabel.frame.size.height) toValue:0];
+        [self translatePositionYInView:_fauxLabel fromValue:-(_fauxLabel.frame.origin.y + _fauxLabel.frame.size.height) toValue:0];
         
         /** move indicator updward to center */
         [self translatePositionYInView:_indicator fromValue:0 toValue:self.bounds.size.height];
@@ -837,7 +813,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:1.0 toOpacity:0.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:0.0 toOpacity:1.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:0.0 toOpacity:1.0];
     }
 
 }
@@ -849,16 +825,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     
     [_indicator.layer setPosition:CGPointMake([self indicatorHorizontalCenter], [self indicatorVerticalCenter])];
     
-    [self addSubview:_indicator];
-
-    UIImageView *rasterLabel = [self rasterTitleLabel];
-    self.titleLabel.alpha = 0;
-    [self addSubview:rasterLabel];
-    
     if (!_isDisplayingActivityIndicator){
         
         /** move title down offscreen */
-        [self translatePositionYInView:rasterLabel fromValue:0 toValue:self.bounds.size.height];
+        [self translatePositionYInView:_fauxLabel fromValue:0 toValue:self.bounds.size.height];
         
         /** move indicator downward to center*/
         [self translatePositionYInView:_indicator fromValue:-(_indicator.frame.origin.y + _indicator.frame.size.height) toValue:0];
@@ -867,12 +837,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:0.0 toOpacity:1.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:1.0 toOpacity:0.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:1.0 toOpacity:0.0];
         
     }else{
         
         /** move title down offscreen */
-        [self translatePositionYInView:rasterLabel fromValue:self.bounds.size.height toValue:0];
+        [self translatePositionYInView:_fauxLabel fromValue:self.bounds.size.height toValue:0];
         
         /** move indicator downward to center*/
         [self translatePositionYInView:_indicator fromValue:0 toValue:-(_indicator.frame.origin.y + _indicator.frame.size.height)];
@@ -881,7 +851,7 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         [self modifyOpacityOnView:_indicator fromOpacity:1.0 toOpacity:0.0];
         
         /** fade out title raster copy */
-        [self modifyOpacityOnView:rasterLabel fromOpacity:0.0 toOpacity:1.0];
+        [self modifyOpacityOnView:_fauxLabel fromOpacity:0.0 toOpacity:1.0];
     }
     
 }
@@ -1000,16 +970,16 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     return (self.bounds.size.width/2);
 }
 
--(UIImageView*)rasterTitleLabel{
+-(UILabel*)fauxTitleLabel{
     
-    if (!_rasterLabel){
-        _rasterLabel = [[UIImageView alloc]init];
+    if (!_fauxLabel){
+        _fauxLabel = [[UILabel alloc] initWithFrame:self.titleLabel.frame];
+        _fauxLabel.textAlignment = NSTextAlignmentCenter;
+        _fauxLabel.backgroundColor = [UIColor clearColor];
+        [_fauxLabel setFont:self.titleLabel.font];
     }
     
-    [_rasterLabel setImage:[self.titleLabel getRasterCopyForceOpaque:YES]];
-    [_rasterLabel setFrame:self.titleLabel.frame];
-    
-    return _rasterLabel;
+    return _fauxLabel;
 }
 
 -(UIColor*)validateRGBProfileForColor:(UIColor*)inputColor{
@@ -1034,33 +1004,8 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         NSLog(@"Only RGB and Monochrome colors are supported");
     }
     
-    
     return inputColor;
 }
 
 @end
                                     
-@implementation UIView (Raster)
-
--(UIImage*)getRasterCopyForceOpaque:(BOOL)fullOpacity{
-    
-    /* returns UIImage of any UIView */
-    
-    CGFloat incomingAlpha = self.alpha;
-    
-    if (fullOpacity) self.alpha = 1;
-    
-    UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.opaque, 0.0);
-    
-    [self.layer renderInContext:UIGraphicsGetCurrentContext()];
-    
-    UIImage *resultingImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    if (fullOpacity) self.alpha = incomingAlpha;
-    
-    return resultingImage;
-}
-
-
-@end

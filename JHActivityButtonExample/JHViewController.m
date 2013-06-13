@@ -29,36 +29,36 @@
     for (int i=0; i<11; i++){
         
         JHActivityButton* activityButton = [[JHActivityButton alloc]initFrame:CGRectMake(100, yLoc, 100, 50) style:i];
-        [activityButton setBackgroundColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [activityButton setBackgroundColor:[UIColor greenColor] forState:UIControlStateHighlighted];
-        [activityButton setBackgroundColor:[UIColor blueColor] forState:UIControlStateSelected];
-//        [activityButton setBackgroundColor:[UIColor blackColor] forState:UIControlStateDisabled];
+        [activityButton setBackgroundColor:[UIColor purpleColor] forState:UIControlStateNormal];
+        [activityButton setBackgroundColor:[UIColor orangeColor] forState:UIControlStateSelected];
         
-//        [activityButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-//        [activityButton setTitleColor:[UIColor orangeColor] forState:UIControlStateHighlighted];
-//        [activityButton setTitleColor:[UIColor greenColor] forState:UIControlStateSelected];
+        [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateHighlighted];
+        [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
         
-//        [activityButton setTitle:@"WWDC" forState:UIControlStateNormal];
-//        [activityButton setTitle:@"highlight" forState:UIControlStateHighlighted];
-//        [activityButton setTitle:@"2013" forState:UIControlStateSelected];
+        /** the bounds of the title label is always limited to the bounds of the original button size before expansion */
+        [activityButton setTitle:@"WWDC" forState:UIControlStateNormal];
+        [activityButton setTitle:@"2013" forState:UIControlStateSelected];
         
         [activityButton.titleLabel setFont:[UIFont fontWithName:@"HelveticaNeue-UltraLight" size:22]];
         
         activityButton.easingFunction = BackEaseOut;
-        activityButton.animationTime = 0.3;
+        activityButton.animationTime = 0.5;
 
-        
-        
-        [activityButton.indicator setColor:[UIColor greenColor]];
+        [activityButton.indicator setColor:[UIColor blackColor]];
 
         [_masterScrollView addSubview:activityButton];
         
         yLoc += 120;
     }
-
     
+     _masterScrollView.backgroundColor = [UIColor whiteColor];
     [_masterScrollView setContentSize:CGSizeMake(self.view.bounds.size.width, yLoc)];
 
+}
+
+-(void)fauxbutton:(UIButton*)sender{
+    [sender setSelected:YES];
 }
 
 -(void)viewDidAppear:(BOOL)animated{
