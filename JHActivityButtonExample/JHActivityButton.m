@@ -41,9 +41,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         
         [self prepareAnimationDispatchTable];
         
-        [self.titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew context:nil];
-        [self.titleLabel addObserver:self forKeyPath:@"textColor" options:NSKeyValueObservingOptionNew context:nil];
-        
         self.titleLabel.alpha = 0;
         
         /** Defaults */
@@ -963,6 +960,9 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         _fauxLabel.textAlignment = NSTextAlignmentCenter;
         _fauxLabel.backgroundColor = [UIColor clearColor];
         [_fauxLabel setFont:self.titleLabel.font];
+
+        [self.titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionInitial context:nil];
+        [self.titleLabel addObserver:self forKeyPath:@"textColor" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionInitial context:nil];
     }
     
     return _fauxLabel;
