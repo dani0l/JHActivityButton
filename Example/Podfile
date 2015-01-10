@@ -1,0 +1,5 @@
+source 'https://github.com/CocoaPods/Specs.git'
+
+target 'JHActivityButton', :exclusive => true do
+  pod "JHActivityButton", :path => "../"
+end

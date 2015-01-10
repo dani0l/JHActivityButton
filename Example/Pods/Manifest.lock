@@ -1,0 +1,20 @@
+PODS:
+  - AHEasing (1.2)
+  - JHActivityButton (1.0.0):
+    - AHEasing (~> 1.1)
+    - Masonry
+  - Masonry (0.6.0)
+
+DEPENDENCIES:
+  - JHActivityButton (from `../`)
+
+EXTERNAL SOURCES:
+  JHActivityButton:
+    :path: ../
+
+SPEC CHECKSUMS:
+  AHEasing: ecab36683ef8c3a9a925fb85e892d1335e750f31
+  JHActivityButton: 790146226427ea542d6117cca32b89489ea94c66
+  Masonry: 0bc111d6902e3a55ff8423bcbdf7155261806547
+
+COCOAPODS: 0.36.0.beta.1

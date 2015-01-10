@@ -1,0 +1,5 @@
+#include "Pods-JHActivityButton-JHActivityButton.xcconfig"
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
+HEADER_SEARCH_PATHS = "${PODS_ROOT}/Headers/Private" "${PODS_ROOT}/Headers/Private/JHActivityButton" "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/AHEasing" "${PODS_ROOT}/Headers/Public/JHActivityButton" "${PODS_ROOT}/Headers/Public/Masonry"
+OTHER_LDFLAGS = ${PODS_JHACTIVITYBUTTON_JHACTIVITYBUTTON_OTHER_LDFLAGS} -ObjC
+PODS_ROOT = ${SRCROOT}
