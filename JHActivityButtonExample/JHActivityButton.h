@@ -29,11 +29,11 @@ typedef NS_ENUM(NSInteger, JHActivityButtonStyle) {
 };
 
 @property(nonatomic,assign)             AHEasingFunction            easingFunction;
-@property(nonatomic,assign)             CGFloat                     animationTime; UI_APPEARANCE_SELECTOR //default is 0.3
+@property(nonatomic,assign)             CGFloat                     animationTime UI_APPEARANCE_SELECTOR; //default is 0.3
 @property(nonatomic,assign,readonly)    BOOL                        isDisplayingActivityIndicator;
 @property(nonatomic,assign)             NSInteger                   shouldSuppressStateChangeOnTap UI_APPEARANCE_SELECTOR;
-@property(nonatomic,assign,readonly)    JHActivityButtonStyle       style; UI_APPEARANCE_SELECTOR
-@property(nonatomic,assign)             CGFloat                     rectangleCornerRadius; UI_APPEARANCE_SELECTOR
+@property(nonatomic,assign,readonly)    JHActivityButtonStyle       style UI_APPEARANCE_SELECTOR;
+@property(nonatomic,assign)             CGFloat                     rectangleCornerRadius UI_APPEARANCE_SELECTOR;
 @property(nonatomic,readonly)           UIActivityIndicatorView*    indicator;
 
 -(instancetype)initFrame:(CGRect)frame style:(JHActivityButtonStyle)style;

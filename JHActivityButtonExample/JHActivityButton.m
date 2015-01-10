@@ -8,6 +8,7 @@
 
 #import "JHActivityButton.h"
 #import <QuartzCore/QuartzCore.h>
+#import <Masonry/Masonry.h>
 #import "CAKeyframeAnimation+AHEasing.h"
 
 @interface JHActivityButton (){
@@ -60,9 +61,24 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         _indicator.userInteractionEnabled = NO;
         
         [self drawBackgroundRectangle];
+        [self buildView];
+        [self buildLayout];
     }
     
     return self;
+}
+
+-(void)buildView{
+    
+    [self fauxTitleLabel];
+    [self addSubview:_fauxLabel];
+}
+
+-(void)buildLayout{
+    
+   [_fauxLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+       make.top.left.bottom.right.equalTo(self.titleLabel);
+   }];
 }
 
 
@@ -96,16 +112,6 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         _rectangleCornerRadius = 0.1;
     
     _buttonBackgroundShapeLayer.path = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:_rectangleCornerRadius].CGPath;
-    
-}
-
--(void)setTitle:(NSString *)title forState:(UIControlState)state{
-    [super setTitle:title forState:state];
- 
-    
-    [self fauxTitleLabel];
-    [self addSubview:_fauxLabel];
-    
 }
 
 -(void)setBackgroundColor:(UIColor *)color forState:(UIControlState)state{
@@ -277,10 +283,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
 
 - (void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
    
-    if ([keyPath isEqual:@"text"]) {
-        _fauxLabel.text = self.titleLabel.text;
-    }else if ([keyPath isEqual:@"textColor"]){
-        [_fauxLabel setTextColor:self.titleLabel.textColor];
+    if ([keyPath isEqualToString:@"text"]) {
+        [_fauxLabel setText:change[NSKeyValueChangeNewKey]];
+    }else if ([keyPath isEqualToString:@"textColor"]){
+        [_fauxLabel setTextColor:change[NSKeyValueChangeNewKey]];
+    }else if ([keyPath isEqualToString:@"font"]){
+        [_fauxLabel setFont:change[NSKeyValueChangeNewKey]];
     }
 }
 
@@ -959,10 +967,10 @@ static CGFloat          kExpandWidePadding      = 10.0f;
         _fauxLabel = [[UILabel alloc] initWithFrame:self.titleLabel.frame];
         _fauxLabel.textAlignment = NSTextAlignmentCenter;
         _fauxLabel.backgroundColor = [UIColor clearColor];
-        [_fauxLabel setFont:self.titleLabel.font];
 
-        [self.titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionInitial context:nil];
-        [self.titleLabel addObserver:self forKeyPath:@"textColor" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionInitial context:nil];
+        [self.titleLabel addObserver:self forKeyPath:@"font" options:NSKeyValueObservingOptionNew context:nil];
+        [self.titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew context:nil];
+        [self.titleLabel addObserver:self forKeyPath:@"textColor" options:NSKeyValueObservingOptionNew context:nil];
     }
     
     return _fauxLabel;

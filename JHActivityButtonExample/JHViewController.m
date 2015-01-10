@@ -26,7 +26,7 @@
     
     CGFloat yLoc = 100;
     
-    [[JHActivityButton appearance]setAnimationTime:0.5];
+    [[JHActivityButton appearance] setAnimationTime:0.5];
     
     for (int i=0; i<11; i++){
         
