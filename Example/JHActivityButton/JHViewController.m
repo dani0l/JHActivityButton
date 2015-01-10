@@ -45,7 +45,7 @@
         [activityButton.titleLabel setFont:[UIFont fontWithName:@"HelveticaNeue-UltraLight" size:22]];
         
         [activityButton.indicator setColor:[UIColor blackColor]];
-
+        
         [_masterScrollView addSubview:activityButton];
         
         yLoc += 120;

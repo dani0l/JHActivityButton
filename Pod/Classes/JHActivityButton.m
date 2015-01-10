@@ -1001,5 +1001,12 @@ static CGFloat          kExpandWidePadding      = 10.0f;
     return inputColor;
 }
 
+-(void)dealloc{
+    
+    [self.titleLabel removeObserver:self forKeyPath:@"font"];
+    [self.titleLabel removeObserver:self forKeyPath:@"text"];
+    [self.titleLabel removeObserver:self forKeyPath:@"textColor"];
+}
+
 @end
-                                    
+
