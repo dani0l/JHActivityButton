@@ -1,0 +1,14 @@
+PODS:
+  - JHActivityButton (0.1.0)
+
+DEPENDENCIES:
+  - JHActivityButton (from `../`)
+
+EXTERNAL SOURCES:
+  JHActivityButton:
+    :path: ../
+
+SPEC CHECKSUMS:
+  JHActivityButton: 96262d881977d3346dbc5df0a320ebd8926c5bae
+
+COCOAPODS: 0.36.0.beta.1
