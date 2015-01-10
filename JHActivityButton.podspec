@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "JHActivityButton"
-  s.version          = "1.0.0"
+  s.version          = "1.0.1"
   s.summary          = "Animated UIButton Subclass with a built-in UIActivityIndicator."
   s.description      = "UIButton Subclass with a built-in UIActivityIndicator. Based off the Ladda concept by Hakim El Hattab http://lab.hakim.se/ladda"
   s.homepage         = "https://github.com/justinHowlett/JHActivityButton"
