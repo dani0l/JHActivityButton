@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "easing.h"
+#import <AHEasing/easing.h>
 
 @interface JHActivityButton : UIButton
 

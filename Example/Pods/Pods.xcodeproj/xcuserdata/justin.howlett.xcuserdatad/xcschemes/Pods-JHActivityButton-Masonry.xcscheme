@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "41D3FAAD6B61EE4A321CD6A9"
+               BlueprintIdentifier = "F934BC3E5B10F964A96D2408"
                BuildableName = "libPods-JHActivityButton-Masonry.a"
                BlueprintName = "Pods-JHActivityButton-Masonry"
                ReferencedContainer = "container:Pods.xcodeproj">
